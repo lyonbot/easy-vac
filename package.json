@@ -1,0 +1,36 @@
+{
+  "name": "easy-vac",
+  "version": "1.0.0",
+  "description": "Validate-and-Clean made easy with TypeScript / JavaScript.",
+  "author": "lyonbot",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lyonbot/easy-vac/issues"
+  },
+  "homepage": "https://lyonbot.github.io/easy-vac/",
+  "main": "lib/index.js",
+  "unpkg": "lib/index.umd.js",
+  "module": "lib/index.es.js",
+  "sideEffects": false,
+  "types": "types/index.d.ts",
+  "scripts": {
+    "prepare": "npm run build",
+    "build": "rimraf types lib && rollup -c",
+    "dev": "tsc --module commonjs --watch",
+    "pretest": "rimraf .tsc-build && tsc --module commonjs",
+    "test": "tape .tsc-build/tests/**/*.js"
+  },
+  "devDependencies": {
+    "@types/tape": "^4.2.33",
+    "reflect-metadata": "^0.1.13",
+    "rimraf": "^2.6.3",
+    "rollup": "^1.6.0",
+    "rollup-plugin-typescript2": "^0.19.3",
+    "tape": "^4.10.1",
+    "tslib": "^1.9.3",
+    "typescript": "^3.3.3333"
+  },
+  "peerDependencies": {
+    "reflect-metadata": "*"
+  }
+}

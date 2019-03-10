@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "outDir": ".tsc-build",
+    "moduleResolution": "node",
+    "target": "es6",
+    "module": "es6",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "sourceMap": true
+  },
+  "include": ["src/**/*.ts", "tests/**/*.ts"],
+  "exclude": ["node_modules"]
+}
