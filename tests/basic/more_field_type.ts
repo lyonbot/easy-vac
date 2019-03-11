@@ -2,7 +2,7 @@
 
 import * as test from "tape"
 
-import { VACData, Required, Optional, IsArrayOf, registerFieldType } from "../src";
+import { VACData, Required, Optional, IsArrayOf, registerFieldType } from "../../src";
 
 class MyObjectId {
   public key: string

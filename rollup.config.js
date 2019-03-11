@@ -5,8 +5,7 @@ export default {
   output: [
     {
       file: "lib/index.js",
-      format: "cjs",
-      sourcemap: true
+      format: "cjs"
     },
     {
       file: "lib/index.es.js",

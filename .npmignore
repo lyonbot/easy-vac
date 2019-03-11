@@ -17,6 +17,7 @@ demo/
 .tsc-build/
 .vscode/
 .rpt2_cache/
+.travis.yml
 
 rollup.config.js
 tsconfig.json

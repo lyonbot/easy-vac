@@ -21,10 +21,9 @@ export function Optional(arg1?: any, arg2?: any) {
     field.type = type || field.type || getReflectType(target, key)
   }
 
-  if (arguments.length === 1) { type = arg1 }
-  else return doDecorate(arg1, arg2)
-
-  return doDecorate
+  if (arguments.length === 0) { return doDecorate }
+  else if (arguments.length === 1) { type = arg1; return doDecorate }
+  else doDecorate(arg1, arg2)
 }
 
 export type RequiredOptions = {
@@ -48,7 +47,9 @@ export function Required(arg1?: any, arg2?: any) {
     field.missingMessage = message
   }
 
-  if (arguments.length === 1) {
+  if (arguments.length === 0) {
+    return doDecorate
+  } else if (arguments.length === 1) {
     if (typeof arg1 === 'string') {
       message = arg1
     } else if (Object.getPrototypeOf(arg1) === Object && 'type' in arg1) {
@@ -122,13 +123,9 @@ function formatOptions(options: OptionType[]) {
 export type OptionType = PrimitiveType | { value: PrimitiveType, label?: string }
 export function IsOneOf(options: OptionType[]): PropertyDecorator {
   return function (target: Object, key: string) {
-    const vinfo = getVACInfoOf(target)
-    const field = vinfo.getFieldInfo(key)
+    const field = getVACInfoOf(target).getFieldInfo(key)
     field.enum = formatOptions(options)
-    field.type = null // no need to check type; it is ensured by enum
-    vinfo.addVACFunc(key, function (value, field) {
-      if (!field.enum.some(item => item.value === value)) throw translate(R.HAS_WRONG_VALUE, field.label)
-    })
+    field.type = "enum"
   }
 }
 
@@ -176,9 +173,10 @@ export function MatchRegExp(regexp: RegExp, message?: string): PropertyDecorator
   }
 }
 
+export function IsEmail(): PropertyDecorator;
 export function IsEmail(message: string): PropertyDecorator;
 export function IsEmail(target: Object, key: string): void;
-export function IsEmail(arg1: Object | string, arg2?: string) {
+export function IsEmail(arg1?: Object | string, arg2?: string) {
   const re_email = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/i
   let message: string
 

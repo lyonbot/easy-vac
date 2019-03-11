@@ -1,6 +1,6 @@
 import * as test from "tape"
 
-import { VACData, Required, Optional, IsArrayOf } from "../src";
+import { VACData, Required, Optional, IsArrayOf } from "../../src";
 
 class NestedForm extends VACData {
   @Optional num: number = 1234

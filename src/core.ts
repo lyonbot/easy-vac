@@ -66,7 +66,7 @@ export type IsArrayOfOptions = {
 export interface FieldInfo {
   key: string
   label: string
-  type: any
+  type: ConstructorOf<any> | "enum"
   required: boolean
   fns: (ValidateAndCleanFunction | "isArrayOf-check")[]
   assertFns: Array<[(value: any, field: FieldInfo) => boolean, string | ((field: FieldInfo) => string)]>
@@ -241,6 +241,13 @@ export class VACInfo {
 
       if (!type) {
         // No type info. Just use the value
+        dst[key] = newData
+      } else if (type === "enum") {
+        // IsOneOf
+        if (!info.enum || !info.enum.some(item => item.value === newData)) {
+          pushError(key, translate(R.HAS_WRONG_VALUE, label))
+          continue iter_each_field
+        }
         dst[key] = newData
       } else if (type === String) {
         // newData shall be a string
