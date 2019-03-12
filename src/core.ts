@@ -4,7 +4,7 @@ const LOG_PREFIX_TAG = "[easy-vac] "
 const S_VACInfo = Symbol("VACInfo")
 const S_ErrorInfo = Symbol("VACErrors")
 
-export type ConstructorOf<T=any> = new (...x: any[]) => T
+export type ConstructorOf<T> = new (...x: any[]) => T
 export type PrimitiveType = string | boolean | number
 export type PrimitiveConstructor = typeof String | typeof Number | typeof Boolean
 export function isPrimitiveConstructor(o: any): o is PrimitiveConstructor {
@@ -63,6 +63,8 @@ export type IsArrayOfOptions = {
   unique?: boolean
 }
 
+export type IsArrayOf_CustomAssert<T=any> = (value: T) => boolean
+
 export interface FieldInfo {
   key: string
   label: string
@@ -74,7 +76,7 @@ export interface FieldInfo {
 
   enum?: { value: PrimitiveType, label: string }[]
 
-  isArrayOf?: "enum" | VACDataConstructor | PrimitiveConstructor | ConstructorOf<any> | ((value: any) => boolean)
+  isArrayOf?: "enum" | VACDataConstructor | PrimitiveConstructor | ConstructorOf<any> | IsArrayOf_CustomAssert
   isArrayOf_options?: IsArrayOfOptions
 }
 
@@ -88,9 +90,22 @@ export type FillDataOption = {
 
   /** do not output info to console.error() */
   silent?: boolean
+
+  /** 
+   * convert primitive to another primitive while filling fields that only accepts primitive:
+   * 
+   * | Received `val` | to string field  | to number field   | to boolean field |
+   * |:--------------:|:-----------------|:------------------|:-----------------|
+   * |  string        | as-is            | `parseFloat(val)` | `!!val`          |
+   * |  number        | `"" + val`       | as-is             | `!!val`          |
+   * |  boolean       | `"" + val`       | `val ? 1 : 0`     | as-is            |
+   */
+  loose?: boolean
 }
 
-
+/**
+ * The container for `FieldInfo`s
+ */
 export class VACInfo {
   fields: Record<string, FieldInfo> = Object.create(null)
 
@@ -120,6 +135,7 @@ export class VACInfo {
     const {
       labelPrefix = "",
       keyPrefix = "",
+      loose = false,
     } = popt
 
     function pushError(key: string, message: string | any) {
@@ -130,6 +146,32 @@ export class VACInfo {
       errors.push(info)
       if (!popt.silent) {
         console.error(LOG_PREFIX_TAG + "failed for " + keyPrefix + key, info)
+      }
+    }
+
+    class PrimitiveConvertError { constructor(public msgId: R) { } }
+
+    function primitiveConvert(val: any, type: PrimitiveConstructor): PrimitiveConvertError | PrimitiveType {
+      if (type === String) {
+        // newData shall be a string
+        if (val instanceof String) return val.toString()
+        else if (typeof val === 'string') return val
+        else if (loose && isPrimitive(val)) return "" + val
+        else return new PrimitiveConvertError(R.MUST_BE_STRING)
+      } else if (type === Number) {
+        // newData shall be a number
+        if (val instanceof Number) return val.valueOf()
+        else if (typeof val === 'number') return val
+        else if (loose && typeof val === "string") return parseFloat(val)
+        else if (loose && typeof val === "boolean") return val ? 1 : 0
+        else return new PrimitiveConvertError(R.MUST_BE_NUMBER)
+      } else if (type === Boolean) {
+        // newData shall be a boolean
+        if (val instanceof Boolean) return val.valueOf()
+        else if (typeof val === 'boolean') return val
+        else if (loose && typeof val === "string") return !!val
+        else if (loose && typeof val === "number") return !!val
+        else return new PrimitiveConvertError(R.MUST_BE_BOOLEAN)
       }
     }
 
@@ -155,7 +197,6 @@ export class VACInfo {
       for (const fn of info.fns) {
         try {
           if (fn === 'isArrayOf-check') { // Array Check
-
             // if (info.type === Array && info.isArrayOf) ... this will never happen unless the programmer is a monkey
 
             if (!isArray(newData)) {
@@ -163,70 +204,101 @@ export class VACInfo {
               continue iter_each_field
             }
 
-            newData = newData.slice()
+            let array = newData.slice()
 
             const elementType = info.isArrayOf
             const options = info.isArrayOf_options
 
             if (options.unique) {
-              newData = newData.filter((v, i, a) => a.indexOf(v) === i)
+              array = array.filter((v, i, a) => a.indexOf(v) === i)
             }
 
-            if ('minLength' in options && newData.length < options.minLength) {
-              pushError(key, translate(R.LENGTH_TOO_SHORT, label, options.minLength, newData.length))
+            if ('minLength' in options && array.length < options.minLength) {
+              pushError(key, translate(R.LENGTH_TOO_SHORT, label, options.minLength, array.length))
               continue iter_each_field
             }
 
-            if ('maxLength' in options && newData.length > options.maxLength) {
-              pushError(key, translate(R.LENGTH_TOO_LONG, label, options.maxLength, newData.length))
+            if ('maxLength' in options && array.length > options.maxLength) {
+              pushError(key, translate(R.LENGTH_TOO_LONG, label, options.maxLength, array.length))
               continue iter_each_field
             }
 
             if (registeredFieldTypes.has(elementType)) { // Array of a class that is registered by registerFieldType
               const fieldTypeFactory = registeredFieldTypes.get(elementType)
 
-              for (let i = 0; i < newData.length; i++) {
+              for (let i = 0; i < array.length; i++) {
                 try {
-                  newData[i] = fieldTypeFactory(newData[i])
+                  array[i] = fieldTypeFactory(array[i])
                 } catch (err) {
                   if (!popt.silent) {
-                    console.error(LOG_PREFIX_TAG + `FieldTypeFactory at ${keyPrefix}${key}[${i}] with incoming value `, newData[i])
+                    console.error(LOG_PREFIX_TAG + `FieldTypeFactory at ${keyPrefix}${key}[${i}] with incoming value `, array[i])
                     console.error(err)
                   }
-                  pushError(key, translate(R.FIELD_TYPE_FACTORY_FAILED, label))
+                  const errmsg: string = ("" + err)
+                  pushError(key, translate(R.FIELD_TYPE_FACTORY_FAILED, `${label}[${i}]`))
+                  pushError(`${key}[${i}]`, errmsg)
                 }
               }
             } else if (Object.getPrototypeOf(elementType) === VACData) { // Array of [[VACData]]
-              for (let i = 0; i < newData.length; i++) {
+              for (let i = 0; i < array.length; i++) {
                 const subPopt: FillDataOption = {
                   ...popt,
                   keyPrefix: keyPrefix + key + `[${i}].`,
                   labelPrefix: labelPrefix + label + `->[${i}]->`,
                 }
-                let item = new (elementType as VACDataConstructor)().fillDataWith(newData[i], subPopt)
+                let item = new (elementType as VACDataConstructor)().fillDataWith(array[i], subPopt)
                 if (item.hasErrors()) {
                   pushError(key, translate(R.HAS_BAD_ELEMENT_AT, label, i))
                   errors.push(...item.getErrors())
                   continue iter_each_field
                 }
-                newData[i] = item
+                array[i] = item
               }
             } else { // Array of enum, or primitive, or {{custom rule}}
+              let handleElement: (val: any, idx: number) => boolean
 
-              const isGoodElement: (v: any) => boolean =
-                elementType === String ? (v => typeof v === 'string') :
-                  elementType === Boolean ? (v => typeof v === 'boolean') :
-                    elementType === Number ? (v => typeof v === 'number') :
-                      elementType === "enum" ? (v => info.enum.some(it => it.value === v)) :
-                        elementType as (v: any) => boolean
-
-              for (let i = 0; i < newData.length; i++) {
-                if (!isGoodElement(newData[i])) {
-                  pushError(key, translate(R.HAS_BAD_ELEMENT_AT, label, i))
-                  continue iter_each_field
+              if (isPrimitiveConstructor(elementType)) {
+                handleElement = (val, i) => {
+                  const cvtValue = primitiveConvert(val, elementType)
+                  if (cvtValue instanceof PrimitiveConvertError) {
+                    pushError(key, translate(R.HAS_BAD_ELEMENT_AT, label, i))
+                    pushError(`${key}[${i}]`, translate(cvtValue.msgId, `${label}[${i}]`))
+                    return false
+                  }
+                  array[i] = cvtValue
+                  return true
+                }
+              } else if (elementType === "enum") {
+                const enumOptions = info.enum
+                handleElement = (val, i) => {
+                  if (!enumOptions.some(it => it.value === val)) {
+                    pushError(key, translate(R.HAS_BAD_ELEMENT_AT, label, i))
+                    pushError(`${key}[${i}]`, translate(R.HAS_WRONG_VALUE, `${label}[${i}]`))
+                    return false
+                  }
+                  return true
+                }
+              } else { // {{custom rule}}
+                const isGoodElement = elementType as IsArrayOf_CustomAssert
+                handleElement = (val, i) => {
+                  try {
+                    if (!isGoodElement(val)) throw translate(R.HAS_WRONG_VALUE, `${label}[${i}]`)
+                    return true
+                  } catch (err) {
+                    const errmsg: string = ("" + err)
+                    pushError(key, translate(R.HAS_BAD_ELEMENT_AT, label, i))
+                    pushError(`${key}[${i}]`, errmsg)
+                    return false
+                  }
                 }
               }
+
+              // VaC every element until one of them failed
+              if (!array.every(handleElement)) continue iter_each_field
             }
+
+            // finally the array may be modified
+            newData = array
           } else { // Regular ValidateAndCleanFunction
             const val = fn(newData, info, popt)
             if (typeof val !== 'undefined') newData = val
@@ -249,21 +321,14 @@ export class VACInfo {
           continue iter_each_field
         }
         dst[key] = newData
-      } else if (type === String) {
-        // newData shall be a string
-        if (newData instanceof String) dst[key] = newData.toString()
-        else if (typeof newData === 'string') dst[key] = newData
-        else pushError(key, translate(R.MUST_BE_STRING, label))
-      } else if (type === Number) {
-        // newData shall be a number
-        if (newData instanceof Number) dst[key] = newData.valueOf()
-        else if (typeof newData === 'number') dst[key] = newData
-        else pushError(key, translate(R.MUST_BE_NUMBER, label))
-      } else if (type === Boolean) {
-        // newData shall be a boolean
-        if (newData instanceof Boolean) dst[key] = newData.valueOf()
-        else if (typeof newData === 'boolean') dst[key] = newData
-        else pushError(key, translate(R.MUST_BE_BOOLEAN, label))
+      } else if (isPrimitiveConstructor(type)) {
+        // newData shall be a primitive
+        const cvtValue = primitiveConvert(newData, type)
+        if (cvtValue instanceof PrimitiveConvertError) {
+          pushError(key, translate(cvtValue.msgId, label))
+        } else {
+          dst[key] = cvtValue
+        }
       } else if (type !== Object && newData instanceof type) {
         // newData maybe already processed by a ValidateAndCleanFunction
         if (type === Array && !info.isArrayOf) {
@@ -330,12 +395,23 @@ export function getVACInfoOf(prototype: any) {
   return ans
 }
 
+/**
+ * The basic class of your Schemas.
+ * 
+ * @example
+ * ```
+ *   class MyForm extends VACData {
+ *     @Required(String) name;
+ *     @Optional(Number) age = 18;
+ *   }
+ * ```
+ */
 export abstract class VACData {
   [S_ErrorInfo]?: ErrorInfo[]
 
-  fromJSON(json: string | object): this {
+  fromJSON(json: string | object, options?: FillDataOption): this {
     if (typeof json === 'string') json = JSON.parse(json)
-    return this.fillDataWith(json)
+    return this.fillDataWith(json, options)
   }
 
   toJSON(): VACDataType<this> {

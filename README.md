@@ -1,6 +1,6 @@
 # easy-vac
 
-Validate-and-Clean made easy with TypeScript / JavaScript.
+Validate-and-Clean made easy with decorators and TypeScript / JavaScript.
 
 [
   **[GitHub](https://github.com/lyonbot/easy-vac)** | 
@@ -25,6 +25,8 @@ class MyData extends VACData {
   @Optional(Date) visited_at = new Date() // with default value
 }
 
+// Now we can validate and clean data easily:
+
 var data = new MyData().fillDataWith({
   name: "hello",
   age: 18,
@@ -34,7 +36,7 @@ var data = new MyData().fillDataWith({
 
 assert(('dirty_field' in data) === false) // unwanted fields are excluded
 assert(data.hasError() === false) // no missing field, no bad input
-assert(data.birthday instanceof Date) // it is Date object now
+assert(data.birthday instanceof Date) // birthday is Date object now
 
 console.log(data.getJSON())
 console.log(data) // or just get an instance of MyData

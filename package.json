@@ -1,15 +1,27 @@
 {
   "name": "easy-vac",
-  "version": "1.0.0",
-  "description": "Validate-and-Clean made easy with TypeScript / JavaScript.",
+  "version": "1.0.1",
+  "description": "Validate-and-Clean made easy with decorators and TypeScript / JavaScript.",
   "author": "lyonbot",
   "license": "MIT",
+  "homepage": "https://lyonbot.github.io/easy-vac/",
+  "repository": {
+    "url": "https://lyonbot.github.io/easy-vac/"
+  },
   "bugs": {
     "url": "https://github.com/lyonbot/easy-vac/issues"
   },
-  "homepage": "https://lyonbot.github.io/easy-vac/",
+  "keywords": [
+    "decorator",
+    "validate",
+    "validation",
+    "clean",
+    "data",
+    "typescript"
+  ],
   "main": "lib/index.js",
   "unpkg": "lib/index.umd.js",
+  "jsdelivr": "lib/index.umd.js",
   "module": "lib/index.es.js",
   "sideEffects": false,
   "types": "types/index.d.ts",
