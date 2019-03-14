@@ -17,10 +17,15 @@ export function isArray(value: any): value is any[] {
   return Object.prototype.toString.call(value) === '[object Array]'
 }
 
+function createDate(v: any) {
+  let ans = new Date(v)
+  if (isNaN(ans.getDay())) throw "Invalid Date"
+  return ans
+}
 
 const registeredFieldTypes = new Map<any, (incomingValue: any) => any>([
   // by Default, Date and Buffer are valid field type
-  [Date, (v: any) => new Date(v)],
+  [Date, createDate],
   [typeof Buffer != 'undefined' && Buffer, (v: any) => new Buffer(v)],
 ])
 export function registerFieldType<T extends ConstructorOf<any>>(s: T, factoryFn?: (incomingValue: any) => InstanceType<T>): void {

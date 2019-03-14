@@ -277,7 +277,6 @@ export function MaxLength(length: number, message?: string): PropertyDecorator {
   return function (target: Object, key: string) {
     const vinfo = getVACInfoOf(target)
     const finfo = vinfo.getFieldInfo(key)
-    finfo.type = Number
     finfo.maxLength = length
     vinfo.addAssertion(
       key,
@@ -291,7 +290,6 @@ export function MinLength(length: number, message?: string): PropertyDecorator {
   return function (target: Object, key: string) {
     const vinfo = getVACInfoOf(target)
     const finfo = vinfo.getFieldInfo(key)
-    finfo.type = Number
     finfo.minLength = length
     vinfo.addAssertion(
       key,
