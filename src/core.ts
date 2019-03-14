@@ -71,13 +71,28 @@ export interface FieldInfo {
   type: ConstructorOf<any> | "enum"
   required: boolean
   fns: (ValidateAndCleanFunction | "isArrayOf-check")[]
-  assertFns: Array<[(value: any, field: FieldInfo) => boolean, string | ((field: FieldInfo) => string)]>
+  assertFns: Array<[(value: any, field: FieldInfo) => boolean, string | ((field: FieldInfo, value: any) => string)]>
   missingMessage?: string
 
   enum?: { value: PrimitiveType, label: string }[]
 
   isArrayOf?: "enum" | VACDataConstructor | PrimitiveConstructor | ConstructorOf<any> | IsArrayOf_CustomAssert
   isArrayOf_options?: IsArrayOfOptions
+
+  /** defined by `@Min` */
+  min?: number
+
+  /** defined by `@Max` */
+  max?: number
+
+  /** defined by `@IsEmail` */
+  isEmail?: boolean
+
+  /** defined by `@MinLength` */
+  minLength?: number
+
+  /** defined by `@MaxLength` */
+  maxLength?: number
 }
 
 
@@ -125,7 +140,7 @@ export class VACInfo {
     this.getFieldInfo(key).fns.unshift(fn)
   }
 
-  addAssertion(key: string, fn: (value: any, field: FieldInfo) => boolean, errmsg?: string | ((field: FieldInfo) => string)) {
+  addAssertion(key: string, fn: (value: any, field: FieldInfo) => boolean, errmsg?: string | ((field: FieldInfo, value: any) => string)) {
     this.getFieldInfo(key).assertFns.push([fn, errmsg])
   }
 
@@ -244,7 +259,7 @@ export class VACInfo {
                 const subPopt: FillDataOption = {
                   ...popt,
                   keyPrefix: keyPrefix + key + `[${i}].`,
-                  labelPrefix: labelPrefix + label + `->[${i}]->`,
+                  labelPrefix: label + `->[${i}]->`,
                 }
                 let item = new (elementType as VACDataConstructor)().fillDataWith(array[i], subPopt)
                 if (item.hasErrors()) {
@@ -271,12 +286,11 @@ export class VACInfo {
               } else if (elementType === "enum") {
                 const enumOptions = info.enum
                 handleElement = (val, i) => {
-                  if (!enumOptions.some(it => it.value === val)) {
-                    pushError(key, translate(R.HAS_BAD_ELEMENT_AT, label, i))
-                    pushError(`${key}[${i}]`, translate(R.HAS_WRONG_VALUE, `${label}[${i}]`))
-                    return false
-                  }
-                  return true
+                  if (isGoodEnumValue(enumOptions, val, loose, correct_val => void (array[i] = correct_val))) return true
+
+                  pushError(key, translate(R.HAS_BAD_ELEMENT_AT, label, i))
+                  pushError(`${key}[${i}]`, translate(R.HAS_WRONG_VALUE, `${label}[${i}]`))
+                  return false
                 }
               } else { // {{custom rule}}
                 const isGoodElement = elementType as IsArrayOf_CustomAssert
@@ -316,7 +330,7 @@ export class VACInfo {
         dst[key] = newData
       } else if (type === "enum") {
         // IsOneOf
-        if (!info.enum || !info.enum.some(item => item.value === newData)) {
+        if (!info.enum || !isGoodEnumValue(info.enum, newData, loose, correct_val => void (newData = correct_val))) {
           pushError(key, translate(R.HAS_WRONG_VALUE, label))
           continue iter_each_field
         }
@@ -354,7 +368,7 @@ export class VACInfo {
         nestedData.fillDataWith(newData, {
           ...popt,
           keyPrefix: keyPrefix + key + ".",
-          labelPrefix: labelPrefix + label + "->",
+          labelPrefix: label + "->",
         })
 
         if (nestedData.hasErrors()) {
@@ -372,7 +386,7 @@ export class VACInfo {
       for (const [assertFn, assertMsg] of info.assertFns) {
         try {
           if (!assertFn(dst[key], info)) {
-            const msg = typeof assertMsg === 'function' ? assertMsg(info) : (assertMsg || translate(R.CUSTOM_ASSERT_FAILED, label))
+            const msg = typeof assertMsg === 'function' ? assertMsg(info, dst[key]) : (assertMsg || translate(R.CUSTOM_ASSERT_FAILED, label))
             throw msg
           }
         } catch (err) {
@@ -389,10 +403,30 @@ export class VACInfo {
   }
 }
 
-export function getVACInfoOf(prototype: any) {
-  let ans = prototype[S_VACInfo] as VACInfo
-  if (!ans) ans = prototype[S_VACInfo] = new VACInfo()
-  return ans
+function isGoodEnumValue(enumOptions: FieldInfo['enum'], value_incoming: any, loose?: boolean, applyLooseFix?: (correct_value: any) => void): boolean {
+  if (!loose) return enumOptions.some(it => it.value === value_incoming);
+
+  // loose check
+
+  return enumOptions.some(({ value }) => {
+    if (value_incoming == value) {
+      if (typeof value_incoming !== typeof value) applyLooseFix(value); // # type sync
+      return true;
+    }
+    else if (typeof value === 'boolean' && value === !!value_incoming) {
+      applyLooseFix(value); // # type sync -- boolean
+      return true;
+    }
+    else {
+      return false;
+    }
+  })
+}
+
+export function getVACInfoOf(prototype: Object): VACInfo {
+  if (typeof prototype !== 'object' || prototype === null) return null
+  if (prototype.hasOwnProperty(S_VACInfo)) return prototype[S_VACInfo] as VACInfo
+  else return prototype[S_VACInfo] = new VACInfo()
 }
 
 /**

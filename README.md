@@ -4,8 +4,10 @@ Validate-and-Clean made easy with decorators and TypeScript / JavaScript.
 
 [
   **[GitHub](https://github.com/lyonbot/easy-vac)** | 
-  **[Online Demo / Playground](https://lyonbot.github.io/easy-vac/)** | 
-  **[Documentation](https://github.com/lyonbot/easy-vac/wiki)**
+  **[Home](https://lyonbot.github.io/easy-vac/)** | 
+  **[Playground](https://lyonbot.github.io/easy-vac/#playground)** | 
+  **[Documentation](https://github.com/lyonbot/easy-vac/wiki)** |
+  **[Examples](https://lyonbot.github.io/easy-vac/#examples)**
 ]
 
 [![Build Status](https://travis-ci.org/lyonbot/easy-vac.svg?branch=master)](https://travis-ci.org/lyonbot/easy-vac)
@@ -14,7 +16,7 @@ Validate-and-Clean made easy with decorators and TypeScript / JavaScript.
 ![npm type definitions](https://img.shields.io/npm/types/easy-vac.svg)
 ![NPM License](https://img.shields.io/npm/l/easy-vac.svg)
 
-## Example
+## Example ([more...](https://lyonbot.github.io/easy-vac/#examples))
 
 ```javascript
 import { VACData, Required, Optional } from "easy-vac";
@@ -34,11 +36,11 @@ var data = new MyData().fillDataWith({
   dirty_field: "hhhaha"
 })
 
-assert(('dirty_field' in data) === false) // unwanted fields are excluded
-assert(data.hasError() === false) // no missing field, no bad input
-assert(data.birthday instanceof Date) // birthday is Date object now
+vconsole.assert(('dirty_field' in data) === false) // unwanted fields are excluded
+vconsole.assert(data.hasErrors() === false) // no missing field, no bad input
+vconsole.assert(data.visited_at instanceof Date) // birthday is Date object now
 
-console.log(data.getJSON())
+console.log(data.toJSON())
 console.log(data) // or just get an instance of MyData
 ```
 

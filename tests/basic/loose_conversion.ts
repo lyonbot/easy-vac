@@ -1,6 +1,6 @@
 import * as test from "tape"
 
-import { VACData, Required, IsArrayOf } from "../../src";
+import { VACData, Required, IsArrayOf, IsOneOf } from "../../src";
 
 test("Loose_Conversion.PrimitiveField", function (t) {
   class MyForm extends VACData {
@@ -83,6 +83,84 @@ test("Loose_Conversion.ArrayOfPrimitive", function (t) {
     t.equal(errors[1].key, "ss[2]")
     t.equal(errors[2].key, "ns")
     t.equal(errors[3].key, "ns[0]")
+
+    t.end()
+  })
+
+  t.end()
+})
+
+test("Loose_Conversion.Enum", function (t) {
+  class MyForm extends VACData {
+    @IsOneOf(["x", 3, true])
+    @Required x: any
+  }
+
+  t.test("good data", function (t) {
+    var data = new MyForm().fillDataWith(
+      { x: "3" },
+      { loose: true }
+    )
+
+    t.notOk(data.hasErrors())
+    t.deepEqual(data.toJSON(), { x: 3 })
+
+    t.end()
+  })
+
+  t.test("good data 2", function (t) {
+    var data = new MyForm().fillDataWith(
+      { x: "true" },
+      { loose: true }
+    )
+
+    t.notOk(data.hasErrors())
+    t.deepEqual(data.toJSON(), { x: true })
+
+    t.end()
+  })
+
+  t.test("bad data", function (t) {
+    var data = new MyForm().fillDataWith(
+      { x: false },
+      { loose: true, silent: true }
+    )
+
+    t.ok(data.hasErrors())
+
+    t.end()
+  })
+
+  t.end()
+})
+
+test("Loose_Conversion.ArrayOfEnum", function (t) {
+  class MyForm extends VACData {
+    @IsArrayOf([1, 2, 3, 4])
+    @Required ns: number[]
+  }
+
+  t.test("good data", function (t) {
+    var data = new MyForm().fillDataWith(
+      { ns: ["3", "4", true, 2] },
+      { loose: true }
+    )
+
+    t.notOk(data.hasErrors())
+    t.deepEqual(data.toJSON(), {
+      ns: [3, 4, 1, 2]
+    })
+
+    t.end()
+  })
+
+  t.test("bad data", function (t) {
+    var data = new MyForm().fillDataWith(
+      { ns: ["3", "5", false, 2] },
+      { loose: true, silent: true }
+    )
+
+    t.ok(data.hasErrors())
 
     t.end()
   })

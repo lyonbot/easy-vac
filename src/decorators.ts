@@ -33,7 +33,7 @@ export function Optional(target: Object, key: string): void;
 export function Optional(arg1?: any, arg2?: any) {
   var type: any
 
-  const doDecorate: PropertyDecorator = (target: Object | string, key: string) => {
+  const doDecorate: PropertyDecorator = (target: object, key: string) => {
     const field = getVACInfoOf(target).getFieldInfo(key)
     field.type = type || field.type || getReflectType(target, key)
   }
@@ -82,7 +82,7 @@ export function Required(arg1?: any, arg2?: any) {
   var type: any
   var message: string
 
-  const doDecorate: PropertyDecorator = (target: Object | string, key: string) => {
+  const doDecorate: PropertyDecorator = (target: object, key: string) => {
     const field = getVACInfoOf(target).getFieldInfo(key)
     field.type = type || field.type || getReflectType(target, key)
     field.required = true
@@ -248,11 +248,13 @@ export function IsArrayOf(
 export function Max(maxval: number, message?: string): PropertyDecorator {
   return function (target: Object, key: string) {
     const vinfo = getVACInfoOf(target)
-    vinfo.getFieldInfo(key).type = Number
+    const finfo = vinfo.getFieldInfo(key)
+    finfo.type = Number
+    finfo.max = maxval
     vinfo.addAssertion(
       key,
-      val => val <= maxval,
-      field => message || translate(R.CANT_BE_GREATER_THAN, field.label, maxval)
+      (val, field) => val <= field.max,
+      field => message || translate(R.CANT_BE_GREATER_THAN, field.label, field.max)
     )
   }
 }
@@ -260,11 +262,41 @@ export function Max(maxval: number, message?: string): PropertyDecorator {
 export function Min(minval: number, message?: string): PropertyDecorator {
   return function (target: Object, key: string) {
     const vinfo = getVACInfoOf(target)
-    vinfo.getFieldInfo(key).type = Number
+    const finfo = vinfo.getFieldInfo(key)
+    finfo.type = Number
+    finfo.min = minval
     vinfo.addAssertion(
       key,
-      val => val >= minval,
-      field => message || translate(R.CANT_BE_LESS_THAN, field.label, minval)
+      (val, field) => val >= field.min,
+      field => message || translate(R.CANT_BE_LESS_THAN, field.label, field.min)
+    )
+  }
+}
+
+export function MaxLength(length: number, message?: string): PropertyDecorator {
+  return function (target: Object, key: string) {
+    const vinfo = getVACInfoOf(target)
+    const finfo = vinfo.getFieldInfo(key)
+    finfo.type = Number
+    finfo.maxLength = length
+    vinfo.addAssertion(
+      key,
+      (val, field) => val.length <= field.maxLength,
+      (field, val) => message || translate(R.LENGTH_TOO_LONG, field.label, field.maxLength, val.length)
+    )
+  }
+}
+
+export function MinLength(length: number, message?: string): PropertyDecorator {
+  return function (target: Object, key: string) {
+    const vinfo = getVACInfoOf(target)
+    const finfo = vinfo.getFieldInfo(key)
+    finfo.type = Number
+    finfo.minLength = length
+    vinfo.addAssertion(
+      key,
+      (val, field) => val.length >= field.minLength,
+      (field, val) => message || translate(R.LENGTH_TOO_SHORT, field.label, field.minLength, val.length)
     )
   }
 }
@@ -288,9 +320,11 @@ export function IsEmail(arg1?: Object | string, arg2?: string) {
   const re_email = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/i
   let message: string
 
-  function doDecorate(target: Object | string, key: string) {
+  function doDecorate(target: object, key: string) {
     const vinfo = getVACInfoOf(target)
-    vinfo.getFieldInfo(key).type = String
+    const finfo = vinfo.getFieldInfo(key)
+    finfo.type = String
+    finfo.isEmail = true
     vinfo.addAssertion(
       key,
       checking => re_email.test(checking),
@@ -299,7 +333,7 @@ export function IsEmail(arg1?: Object | string, arg2?: string) {
   }
 
   if (arguments.length > 1) {
-    doDecorate(arg1, arg2)
+    doDecorate(arg1 as Object, arg2)
   } else {
     message = arg1 as string
     return doDecorate
