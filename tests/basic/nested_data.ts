@@ -27,8 +27,8 @@ test("Bad Data Test", t => {
   t.ok(data.hasErrors())
 
   var errors = data.getErrors()
-  t.equal(errors.length, 2)
-  t.deepEqual(errors.map(x => x.key).sort(), ["nested.boo", "nested.num"])
+  t.equal(errors.length, 3)
+  t.deepEqual(errors.map(x => x.key).sort(), ["nested", "nested.boo", "nested.num"])
 
   t.end()
 })

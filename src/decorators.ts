@@ -1,7 +1,9 @@
 import "reflect-metadata";
 
 import { R, translate } from "./i18n";
-import { getVACInfoOf, PrimitiveType, PrimitiveConstructor, ValidateAndCleanFunction, isPrimitive, isArray, VACDataType, VACDataConstructor, VACData, IsArrayOfOptions, ConstructorOf, FieldInfo, IsArrayOf_CustomAssert } from "./core";
+import { getVACInfoOf, ValidateAndCleanFunction, VACDataConstructor, IsArrayOfOptions, FieldInfo } from "./core";
+import { PrimitiveConstructor, ConstructorOf, PrimitiveType } from './util';
+import { isPrimitive, isArray } from './util';
 
 function getReflectType(target: any, key: string) {
   if (typeof Reflect === 'object' && typeof Reflect['getMetadata'] === 'function') {
@@ -197,11 +199,11 @@ export { IsArrayOfOptions } from "./core"
 /**
  * This field is an array, and all of its elements must meets the criteria
  * 
- * @param criteria can be `String`, `Number`, `Boolean`, `YourAnotherVACDataClass`, or an assertion function returning boolean
+ * @param type can be `String`, `Number`, `Boolean`, `YourAnotherVACDataClass`, or a registered type
  * @param [isArrayOf_options] extra options for array-checking
  */
 export function IsArrayOf(
-  criteria: PrimitiveConstructor | VACDataConstructor | ConstructorOf<any> | IsArrayOf_CustomAssert,
+  type: PrimitiveConstructor | VACDataConstructor | ConstructorOf<any>,
   isArrayOf_options?: IsArrayOfOptions
 ): PropertyDecorator
 
@@ -220,14 +222,12 @@ export function IsArrayOf(
 
 
 export function IsArrayOf(
-  criteria: OptionType[] | PrimitiveConstructor | VACDataConstructor | ConstructorOf<any> | IsArrayOf_CustomAssert,
+  criteria: OptionType[] | PrimitiveConstructor | VACDataConstructor | ConstructorOf<any>,
   options?: IsArrayOfOptions
 ): PropertyDecorator {
   return function (target: Object, key: string) {
     const vinfo = getVACInfoOf(target)
     const field = vinfo.getFieldInfo(key)
-
-    vinfo.addVACFunc(key, "isArrayOf-check")
 
     field.type = Array
     field.isArrayOf_options = options || {}
@@ -270,6 +270,32 @@ export function Min(minval: number, message?: string): PropertyDecorator {
       (val, field) => val >= field.min,
       field => message || translate(R.CANT_BE_LESS_THAN, field.label, field.min)
     )
+  }
+}
+
+export function IsInt(): PropertyDecorator;
+export function IsInt(message: string): PropertyDecorator;
+export function IsInt(target: Object, key: string): void;
+export function IsInt(arg1?: Object | string, arg2?: string) {
+  let message: string
+
+  function doDecorate(target: object, key: string) {
+    const vinfo = getVACInfoOf(target)
+    const finfo = vinfo.getFieldInfo(key)
+    finfo.type = Number
+    finfo.isInt = true
+    vinfo.addAssertion<number>(
+      key,
+      checking => !isNaN(checking) && (checking | 0) === checking,
+      field => message || translate(R.MUST_BE_INTEGER, field.label)
+    )
+  }
+
+  if (arguments.length > 1) {
+    doDecorate(arg1 as Object, arg2)
+  } else {
+    message = arg1 as string
+    return doDecorate
   }
 }
 

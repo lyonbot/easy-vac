@@ -110,7 +110,7 @@ test("Loose_Conversion.Enum", function (t) {
 
   t.test("good data 2", function (t) {
     var data = new MyForm().fillDataWith(
-      { x: "true" },
+      { x: 1 },
       { loose: true }
     )
 
@@ -123,6 +123,19 @@ test("Loose_Conversion.Enum", function (t) {
   t.test("bad data", function (t) {
     var data = new MyForm().fillDataWith(
       { x: false },
+      { loose: true, silent: true }
+    )
+
+    t.ok(data.hasErrors())
+
+    t.end()
+  })
+
+  // "true" != true
+  // https://stackoverflow.com/questions/11363659/why-does-true-true-show-false-in-javascript
+  t.test("bad data2", function (t) {
+    var data = new MyForm().fillDataWith(
+      { x: "true" },
       { loose: true, silent: true }
     )
 

@@ -18,13 +18,24 @@ Validate-and-Clean made easy with decorators and TypeScript / JavaScript.
 
 ## Example ([more...](https://lyonbot.github.io/easy-vac/#examples))
 
-```javascript
+```typescript
 import { VACData, Required, Optional } from "easy-vac";
+
+// In JavaScript:
 
 class MyData extends VACData {
   @Required(String) name
   @Optional(Number) age
   @Optional(Date) visited_at = new Date() // with default value
+}
+
+// In TypeScript, the type can be defined after property name,
+// which is awesome for type-checking and autocomplete  :)
+
+class MyData_TypeScript extends VACData {
+  @Required name: string
+  @Optional age: number
+  @Optional visited_at: Date = new Date() // * ALWAYS declare the type! even if a default value is set
 }
 
 // Now we can validate and clean data easily:
@@ -36,9 +47,9 @@ var data = new MyData().fillDataWith({
   dirty_field: "hhhaha"
 })
 
-vconsole.assert(('dirty_field' in data) === false) // unwanted fields are excluded
-vconsole.assert(data.hasErrors() === false) // no missing field, no bad input
-vconsole.assert(data.visited_at instanceof Date) // birthday is Date object now
+console.assert(('dirty_field' in data) === false) // unwanted fields are excluded
+console.assert(data.hasErrors() === false) // no missing field, no bad input
+console.assert(data.visited_at instanceof Date) // birthday is Date object now
 
 console.log(data.toJSON())
 console.log(data) // or just get an instance of MyData

@@ -33,6 +33,55 @@ test("Basic_Array.StringArray", function (t) {
   t.end()
 })
 
+test("Basic_Array.NumberArray (with IsArrayOf_Options)", function (t) {
+  class MyForm extends VACData {
+    @IsArrayOf(Number, { unique: true, minLength: 3, maxLength: 5 })
+    @Required arr1: number[]
+  }
+
+  t.test("good data", function (t) {
+    var data = new MyForm().fillDataWith({ arr1: [4, 1, 1, 3, 2, 2, 2, 5] })
+
+    t.notOk(data.hasErrors())
+    t.deepEqual(data.toJSON(), { arr1: [4, 1, 3, 2, 5] })
+
+    t.end()
+  })
+
+  t.test("good data: loose", function (t) {
+    var data = new MyForm().fillDataWith({ arr1: [4, "1", 1, 3, 2, true, 2, 5] }, { loose: true })
+
+    t.notOk(data.hasErrors())
+    t.deepEqual(data.toJSON(), { arr1: [4, 1, 3, 2, 5] })
+
+    t.end()
+  })
+
+  t.test("bad data: maxLength", function (t) {
+    var data = new MyForm().fillDataWith({ arr1: [1, 2, 3, 4, 5, 6, 7] }, { silent: true })
+
+    t.ok(data.hasErrors())
+
+    const errors = data.getErrors()
+    t.equal(errors.length, 1)
+
+    t.end()
+  })
+
+  t.test("bad data: minLength + unique + loose ", function (t) {
+    var data = new MyForm().fillDataWith({ arr1: ["3", 3, true, 1] }, { silent: true, loose: true })
+
+    t.ok(data.hasErrors())
+
+    const errors = data.getErrors()
+    t.equal(errors.length, 1)
+
+    t.end()
+  })
+
+  t.end()
+})
+
 test("Basic_Array.EnumArray", function (t) {
   class MyForm extends VACData {
     @IsArrayOf(["a", "b", "c", { value: "d", label: "Fourth" }])
@@ -103,9 +152,10 @@ test("Basic_Array.Array of Another VACData", function (t) {
     t.ok(data.hasErrors())
 
     const errors = data.getErrors()
-    t.equal(errors.length, 2)
+    t.equal(errors.length, 3)
     t.equal(errors[0].key, "arr1")
-    t.equal(errors[1].key, "arr1[1].num")
+    t.equal(errors[1].key, "arr1[1]")
+    t.equal(errors[2].key, "arr1[1].num")
 
     t.end()
   })
@@ -173,10 +223,12 @@ test("Basic_Array.Array of Self", function (t) {
     t.ok(data.hasErrors())
 
     const errors = data.getErrors()
-    t.equal(errors.length, 3)
+    t.equal(errors.length, 5)
     t.equal(errors[0].key, "arr1")
-    t.equal(errors[1].key, "arr1[0].arr1")
-    t.equal(errors[2].key, "arr1[0].arr1[1].m")
+    t.equal(errors[1].key, "arr1[0]")
+    t.equal(errors[2].key, "arr1[0].arr1")
+    t.equal(errors[3].key, "arr1[0].arr1[1]")
+    t.equal(errors[4].key, "arr1[0].arr1[1].m")
 
     t.end()
   })
