@@ -1,3 +1,4 @@
+import "reflect-metadata"
 import * as test from "tape"
 
 import { VACData, Required, Optional, AssertWith } from "../../src";
@@ -58,7 +59,7 @@ test("AssertWith decorator", t => {
   })
 
   t.test("asserting - good data with loose mode", t => {
-    var data = new Form1().fillDataWith({ s1: "Nihao!", n1: "8", s2: "ok" }, { loose: true })
+    var data = new Form1().fillDataWith({ s1: "Nihao!", n1: "8", s2: "ok" })
 
     t.notOk(data.hasErrors())
     t.deepEqual(data.toJSON(), { s1: "Nihao!", n1: 8, s2: "ok" })

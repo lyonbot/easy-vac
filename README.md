@@ -42,7 +42,7 @@ class MyData_TypeScript extends VACData {
 
 var data = new MyData().fillDataWith({
   name: "hello",
-  age: 18,
+  age: "18",
   visited_at: 123454654654,
   dirty_field: "hhhaha"
 })
@@ -50,6 +50,7 @@ var data = new MyData().fillDataWith({
 console.assert(('dirty_field' in data) === false) // unwanted fields are excluded
 console.assert(data.hasErrors() === false) // no missing field, no bad input
 console.assert(data.visited_at instanceof Date) // birthday is Date object now
+console.assert(typeof data.age === 'number') // age is a number now
 
 console.log(data.toJSON())
 console.log(data) // or just get an instance of MyData
@@ -59,7 +60,7 @@ console.log(data) // or just get an instance of MyData
 
 **Install**: 
 
-- via NPM: `npm install --save easy-vac reflect-metadata`
+- via NPM: `npm install --save easy-vac`
 - via CDN:
   - easy-vac only runs on modern browsers with ES6 support.
   - UMD version is provided by default, with global name `EasyVAC`
@@ -68,7 +69,17 @@ console.log(data) // or just get an instance of MyData
 
 **JavaScript Users**: enable [Decorators Support](https://babeljs.io/docs/en/babel-plugin-proposal-decorators) in Babel.
 
-**TypeScript Users**: edit `tsconfig.json` and put this into `compilerOptions` section:
+**TypeScript Users**: 
+
+install reflect-metadata shim: `npm install --save reflect-metadata`
+
+add this as the first line in your app's entry code
+
+```ts
+import "reflect-metadata"
+```
+
+edit `tsconfig.json` and put this into `compilerOptions` section:
 
 ```js
   "emitDecoratorMetadata": true,

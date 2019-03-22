@@ -63,22 +63,48 @@ export type FillDataOption = {
   silent?: boolean
 
   /** 
-   * convert primitive to another primitive while filling fields that only accepts primitive:
+   * if incoming value `val` has incorrect type, try to convert it.
    * 
-   * | Received `val` | to string field  | to number field   | to boolean field |
-   * |:--------------:|:-----------------|:------------------|:-----------------|
-   * |  string        | as-is            | `parseFloat(val)` | *(see below)*    |
-   * |  number        | `"" + val`       | as-is             | `!!val`          |
-   * |  boolean       | `"" + val`       | `val ? 1 : 0`     | as-is            |
+   * eg:
    * 
-   * Note: when converting string to boolean:
+   * - string field: 
+   *   - val is number or boolean --> `"" + val`
+   * - number field:
+   *   - val is boolean --> `val ? 1 : 0`
+   *   - val is string --> `parseFloat(val)` and result can't be NaN
+   * - boolean field:
+   *   - val is number --> `!!val`
+   *   - val is string:
+   *     - (case insenstive) "false", "no", "n"  --> `false`
+   *     - (case insenstive) "true", "yes", "y"  --> `true`
+   *     - (empty string)  --> `false`
+   *     - (other patterns) --> `true`
+   * - Date field:
+   *   - val is a string _that contains only digits_ --> `new Date(parseInt(val))` and result can't be `invalid Date`
+   *   - val is number or string --> `new Date(val)` and result can't be `invalid Date`
+   * - Array field:
+   *   - val is a string --> `val.split(',')` then do recrusive array checking
+   *   - val is an array --> do recrusive array checking
+   *   - (more info can be found in `@IsArrayOf` decorator's doc)
    * 
-   * - "false", "no", "n"  --> `false`   (case insenstive)
-   * - "true", "yes", "y"  --> `true`   (case insenstive)
-   * - (empty string)  --> `false`
-   * - (other patterns) --> `true`
+   * as for other types, see https://github.com/lyonbot/easy-vac/wiki/Field-Types
    */
   loose?: boolean
+
+  /**
+   * alias of `!loose`
+   * 
+   * if is provided, this overrides `loose` with negative boolean value
+   */
+  strict?: boolean
+}
+
+const defaultFillDataOption: Required<FillDataOption> = {
+  keyPrefix: "",
+  labelPrefix: "",
+  loose: true,
+  silent: false,
+  strict: void 0,
 }
 
 /**
@@ -108,13 +134,9 @@ export class VACInfo {
   }
 
   populate(dst: VACData, incoming: any, _popt: FillDataOption) {
-    const popt: Required<FillDataOption> = {
-      keyPrefix: "",
-      labelPrefix: "",
-      loose: false,
-      silent: false,
-      ..._popt,
-    }
+    const popt: Required<FillDataOption> = { ...defaultFillDataOption, ..._popt }
+    if (typeof popt['strict'] === 'boolean') popt.loose = !popt.strict
+    else popt.strict = !popt.loose
 
     const { silent } = popt
 

@@ -1,4 +1,4 @@
-import "reflect-metadata";
+/// <reference types="reflect-metadata" />
 
 import { R, translate } from "./i18n";
 import { getVACInfoOf, ValidateAndCleanFunction, VACDataConstructor, IsArrayOfOptions, FieldInfo } from "./core";

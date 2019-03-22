@@ -1,3 +1,4 @@
+import "reflect-metadata"
 import * as test from "tape"
 
 import { VACData, Required, IsOneOf, getVACInfoOf } from "../../src";

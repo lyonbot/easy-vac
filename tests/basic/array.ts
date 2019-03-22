@@ -1,3 +1,4 @@
+import "reflect-metadata"
 import * as test from "tape"
 
 import { VACData, Required, Optional, IsArrayOf, getVACInfoOf, registerFieldType } from "../../src";
@@ -17,8 +18,8 @@ test("Basic_Array.StringArray", function (t) {
     t.end()
   })
 
-  t.test("bad data", function (t) {
-    var data = new MyForm().fillDataWith({ arr1: ["a", "b", 3] }, { silent: true })
+  t.test("bad data: wrong type in strict mode", function (t) {
+    var data = new MyForm().fillDataWith({ arr1: ["a", "b", 3] }, { silent: true, loose: false })
 
     t.ok(data.hasErrors())
 
@@ -49,7 +50,7 @@ test("Basic_Array.NumberArray (with IsArrayOf_Options)", function (t) {
   })
 
   t.test("good data: loose", function (t) {
-    var data = new MyForm().fillDataWith({ arr1: [4, "1", 1, 3, 2, true, 2, 5] }, { loose: true })
+    var data = new MyForm().fillDataWith({ arr1: [4, "1", 1, 3, 2, true, 2, 5] })
 
     t.notOk(data.hasErrors())
     t.deepEqual(data.toJSON(), { arr1: [4, 1, 3, 2, 5] })

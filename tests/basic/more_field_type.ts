@@ -1,5 +1,6 @@
 // https://github.com/lyonbot/easy-vac/wiki/Field-Types
 
+import "reflect-metadata"
 import * as test from "tape"
 
 import { VACData, Required, Optional, IsArrayOf, registerFieldType } from "../../src";

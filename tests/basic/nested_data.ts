@@ -1,3 +1,4 @@
+import "reflect-metadata"
 import * as test from "tape"
 
 import { VACData, Required, Optional, IsArrayOf } from "../../src";
@@ -15,49 +16,54 @@ class MyForm extends VACData {
   @Optional arr: NestedForm[]
 }
 
-test("Bad Data Test", t => {
-  var data = new MyForm().fillDataWith({
-    name: "John",
-    nested: {
-      num: false,
-      boo: 5678
-    }
-  }, { silent: true })
+test("Nested Data", ({ test, end }) => {
 
-  t.ok(data.hasErrors())
+  test("Bad Data in strict mode", t => {
+    var data = new MyForm().fillDataWith({
+      name: "John",
+      nested: {
+        num: false,
+        boo: 5678
+      }
+    }, { loose: false, silent: true })
 
-  var errors = data.getErrors()
-  t.equal(errors.length, 3)
-  t.deepEqual(errors.map(x => x.key).sort(), ["nested", "nested.boo", "nested.num"])
+    t.ok(data.hasErrors())
 
-  t.end()
-})
+    var errors = data.getErrors()
+    t.equal(errors.length, 3)
+    t.deepEqual(errors.map(x => x.key).sort(), ["nested", "nested.boo", "nested.num"])
 
-test("Good Data Test", t => {
-  var data2 = new MyForm().fillDataWith({
-    name: "John",
-    nested: {
-      num: 5678,
-      boo: true
-    },
-    arr: [
-      { boo: true },
-      { num: 24, boo: false }
-    ]
+    t.end()
   })
 
-  t.ok(data2.hasErrors() === false)
-  t.deepEqual(data2.toJSON(), {
-    name: "John",
-    nested: {
-      num: 5678,
-      boo: true
-    },
-    arr: [
-      { num: 1234, boo: true }, // the default value of "num" is used
-      { num: 24, boo: false }
-    ]
+  test("Good Data Test", t => {
+    var data2 = new MyForm().fillDataWith({
+      name: "John",
+      nested: {
+        num: 5678,
+        boo: true
+      },
+      arr: [
+        { boo: true },
+        { num: 24, boo: false }
+      ]
+    })
+
+    t.ok(data2.hasErrors() === false)
+    t.deepEqual(data2.toJSON(), {
+      name: "John",
+      nested: {
+        num: 5678,
+        boo: true
+      },
+      arr: [
+        { num: 1234, boo: true }, // the default value of "num" is used
+        { num: 24, boo: false }
+      ]
+    })
+
+    t.end()
   })
 
-  t.end()
+  end()
 })

@@ -1,3 +1,4 @@
+import "reflect-metadata"
 import * as test from "tape"
 
 import { VACData, Required, IsArrayOf, IsOneOf } from "../../src";
@@ -10,7 +11,7 @@ test("Loose_Conversion.PrimitiveField", function (t) {
   }
 
   t.test("good data1", function (t) {
-    var data = new MyForm().fillDataWith({ s: 123, n: "456", b: 1 }, { loose: true })
+    var data = new MyForm().fillDataWith({ s: 123, n: "456", b: 1 })
 
     t.notOk(data.hasErrors())
     t.deepEqual(data.toJSON(), { s: "123", n: 456, b: true })
@@ -19,7 +20,7 @@ test("Loose_Conversion.PrimitiveField", function (t) {
   })
 
   t.test("good data2", function (t) {
-    var data = new MyForm().fillDataWith({ s: 123, n: "3.1", b: "" }, { loose: true })
+    var data = new MyForm().fillDataWith({ s: 123, n: "3.1", b: "" })
 
     t.notOk(data.hasErrors())
     t.deepEqual(data.toJSON(), { s: "123", n: 3.1, b: false })
@@ -32,7 +33,7 @@ test("Loose_Conversion.PrimitiveField", function (t) {
       s: 123,
       n: "456",
       b: { foo: true } // incoming b is not a primitive
-    }, { loose: true, silent: true })
+    }, { silent: true })
 
     t.ok(data.hasErrors())
     const errors = data.getErrors()
@@ -57,7 +58,7 @@ test("Loose_Conversion.ArrayOfPrimitive", function (t) {
       ss: [123, false, "good"],
       ns: ["456", true, 3],
       bs: [1, "true", false]
-    }, { loose: true })
+    })
 
     t.notOk(data.hasErrors())
     t.deepEqual(data.toJSON(), {
@@ -74,7 +75,7 @@ test("Loose_Conversion.ArrayOfPrimitive", function (t) {
       ss: [123, false, { x: 1 }], // object is not primitive
       ns: [null, 3],  // note: null is also an object
       bs: []
-    }, { loose: true, silent: true })
+    }, { silent: true })
 
     t.ok(data.hasErrors())
     const errors = data.getErrors()
@@ -123,7 +124,7 @@ test("Loose_Conversion.Enum", function (t) {
   t.test("bad data", function (t) {
     var data = new MyForm().fillDataWith(
       { x: false },
-      { loose: true, silent: true }
+      { silent: true }
     )
 
     t.ok(data.hasErrors())
@@ -136,7 +137,7 @@ test("Loose_Conversion.Enum", function (t) {
   t.test("bad data2", function (t) {
     var data = new MyForm().fillDataWith(
       { x: "true" },
-      { loose: true, silent: true }
+      { silent: true }
     )
 
     t.ok(data.hasErrors())
@@ -170,7 +171,7 @@ test("Loose_Conversion.ArrayOfEnum", function (t) {
   t.test("bad data", function (t) {
     var data = new MyForm().fillDataWith(
       { ns: ["3", "5", false, 2] },
-      { loose: true, silent: true }
+      { silent: true }
     )
 
     t.ok(data.hasErrors())
