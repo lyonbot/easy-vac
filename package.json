@@ -1,0 +1,43 @@
+{
+  "name": "easy-vac",
+  "description": "easily validate and clean data, with JSON Schema-like syntax",
+  "authors": "lyonbot",
+  "version": "2.0.0",
+  "license": "MIT",
+  "homepage": "https://lyonbot.github.io/easy-vac/",
+  "repository": {
+    "url": "https://lyonbot.github.io/easy-vac/"
+  },
+  "bugs": {
+    "url": "https://github.com/lyonbot/easy-vac/issues"
+  },
+  "keywords": [
+    "validate",
+    "json schema",
+    "clean",
+    "type",
+    "schema",
+    "data"
+  ],
+  "main": "./dist/index.js",
+  "unpkg": "./dist/index.umd.min.js",
+  "browser": "./dist/index.umd.min.js",
+  "typings": "./dist/index.d.ts",
+  "scripts": {
+    "dev": "tsc -w -d",
+    "build": "tsc -d -m es2015 --outDir tmp/lib && rollup -c && npm run dts && npm run minify",
+    "dts": "node tools/bundle-dts",
+    "minify": "terser dist/index.umd.js -cm -o dist/index.umd.min.js --mangle-props regex=/^_/",
+    "test": "node test/run-test --all",
+    "prepare": "npm run build"
+  },
+  "sideEffects": true,
+  "devDependencies": {
+    "@types/node": "^10.0.7",
+    "rollup": "^1.14.4",
+    "terser": "^4.0.0",
+    "ts-node": "^8.2.0",
+    "tslib": "^1.9.3",
+    "typescript": "^3.5.0"
+  }
+}
