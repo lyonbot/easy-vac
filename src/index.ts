@@ -2,7 +2,7 @@
 
 import * as example from "./example";
 import { VConsole, VConsoleDts } from "./vconsole";
-import { debounce, removeLeadingJSComments, loadText } from "./helpers";
+import { debounce, removeLeadingJSComments } from "./helpers";
 import { TranspileOptions } from "typescript";
 import { renderVACError } from "./render-vacerror";
 
@@ -19,7 +19,9 @@ const transpileOptions: TranspileOptions = {
   }
 }
 
-define('test-data', () => ({ "default": {} }))
+const emulatedIncomingModule = { "default": {} }
+define('incoming', () => emulatedIncomingModule)
+Object.defineProperty(window, "incoming", { get() { return emulatedIncomingModule.default }, configurable: false })
 
 let lastProgramSource: string, lastIncomingSource: string
 
@@ -32,7 +34,7 @@ const recompile = debounce(function () {
     let js =
       removeLeadingJSComments(ts.transpileModule(incomingScript, transpileOptions).outputText)
         .replace('define(', 'require(')
-        .replace('"exports"', '"test-data"')
+        .replace('"exports"', '"incoming"')
 
     jsToRun.push(js)
   }
@@ -66,7 +68,7 @@ const recompile = debounce(function () {
 
   typescriptDefaults.addExtraLib(await loadText('https://unpkg.com/easy-vac/dist/index.d.ts'), "file:///easy-vac/index.d.ts")
   typescriptDefaults.addExtraLib(VConsoleDts, "file:///playground.d.ts")
-  typescriptDefaults.addExtraLib(`declare module "test-data" { const d: any; export default d; }`, "file:///test-data.d.ts")
+  typescriptDefaults.addExtraLib(`declare module "incoming" { const d: any; export default d; }`, "file:///incoming.d.ts")
 
   example.init(programModel, incomingModel)
   example.useExample(await loadText("examples/00 Hello World.txt"))
@@ -82,23 +84,14 @@ const recompile = debounce(function () {
   setTimeout(() => { VConsole.autoScroll = true }, 1000)
 }()
 
-window['loadExample'] = function (name) {
+window['loadExample'] = function (name: string) {
   loadText(`examples/${name}.txt`).then(example.useExample).catch(() => { alert('Failed to load example!') })
-  return false
-}
-
-window['loadManualLang'] = loadManualLang
-
-function loadManualLang(code: string) {
-  loadText(`manual/${code}.html`).then(x => {
-    document.getElementById('manual').innerHTML = x
-  }).catch(() => { alert('Failed to load manual!') })
   return false
 }
 
 window['resetProgram'] = function () {
   programModel.setValue(`import { VObject, VArray, VEnum, VTuple, VACError } from "easy-vac"
-import incoming from "test-data"
+import incoming from "incoming"
 
 const XXX = VObject({
   // ...

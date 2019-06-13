@@ -15,7 +15,7 @@ export default {
 
 //>>>--- program
 import { VObject, VArray, VEnum, VTuple } from "easy-vac"
-import incoming from "test-data"
+import incoming from "incoming"
 
 /**
  * ArithOp is a enum type,

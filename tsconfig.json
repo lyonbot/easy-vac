@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es6",
     "module": "commonjs",
-    "moduleResolution": "classic",
+    "moduleResolution": "node",
     "outDir": "dist",
     "jsx": "react",
     "jsxFactory": "h"

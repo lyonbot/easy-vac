@@ -1,5 +1,3 @@
-export const loadText = (url: string) => fetch(url, { credentials: "omit" }).then(x => x.text());
-
 export function debounce(func: () => void, wait?: number) {
   var timeout = null
 
