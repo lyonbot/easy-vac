@@ -1,0 +1,23 @@
+{
+  "name": "easy-vac-page",
+  "version": "2.0.0",
+  "description": "Validate-and-Clean made easy with decorators and TypeScript / JavaScript.",
+  "author": "lyonbot",
+  "private": true,
+  "scripts": {
+    "prepare": "npm run build",
+    "build": "node build-world",
+    "dev": "node build-world --watch"
+  },
+  "devDependencies": {
+    "@types/node": "^10.0.7",
+    "highlight.js": "^9.15.8",
+    "markdown-it": "^8.4.2",
+    "preact": "^8.4.2",
+    "rollup": "^1.14.4",
+    "rollup-plugin-typescript2": "^0.21.1",
+    "sass": "^1.21.0",
+    "tslib": "^1.9.3",
+    "typescript": "^3.5.0"
+  }
+}

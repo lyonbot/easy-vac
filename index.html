@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1,ie=edge">
+    <title>easy-vac: validate and clean data made easy</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.15.8/styles/a11y-light.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" crossorigin="anonymous"/>
+    <link rel="stylesheet" href="main.css">
+  </head>
+  <body>
+
+    <header>
+      <div class="wrapper">
+        <h1>easy-vac</h1>
+        <p>Validate and Clean data made easy!</p>
+        <nav>
+          <a href="https://github.com/lyonbot/easy-vac/">
+            <i class="fab fa-github"></i>
+            GitHub</a>
+          <a href="#playground">
+            <i class="fas fa-play"></i>
+            Try it Now</a>
+          <a href="#examples">
+            <i class="fas fa-cheese"></i>
+            Examples</a>
+          <a href="https://github.com/lyonbot/easy-vac/wiki">
+            <i class="fas fa-book"></i>
+            Documentation</a>
+        </nav>
+      </div>
+    </header>
+
+    <div class="wrapper manual-lang-list">
+      <i class="fas fa-language"></i>
+      <a class="manual-lang" onclick="loadManualLang('en')" data-code="en">English</a><a class="manual-lang" onclick="loadManualLang('zh')" data-code="zh">中文</a>
+    </div>
+
+    <section id="manual">
+      <p>easy-vac is a JavaScript library which helps you validate and clean data.</p>
+<ul>
+<li><strong>Better than JSON Schema</strong>: get rid of JSON limits, define schemas in JavaScript style</li>
+<li><strong>Auto Type Inferrence</strong>: works perfectly with TypeScript</li>
+<li><strong>Type Tolerance</strong>: may convert values to correct type</li>
+<li><strong>Highly Extensible</strong>: define your own types and reuse them everywhere</li>
+</ul>
+<p><a href="https://travis-ci.org/lyonbot/easy-vac"><img src="https://travis-ci.org/lyonbot/easy-vac.svg?branch=master" alt="Build Status"></a>
+<a href="https://www.npmjs.com/package/easy-vac"><img src="https://img.shields.io/npm/v/easy-vac.svg" alt="npm"></a>
+<img src="https://img.shields.io/bundlephobia/minzip/easy-vac.svg" alt="npm bundle size">
+<img src="https://img.shields.io/npm/types/easy-vac.svg" alt="npm type definitions">
+<img src="https://img.shields.io/npm/l/easy-vac.svg" alt="NPM License"></p>
+<h2><i class="fas fa-mug-hot"></i> Get Started</h2>
+<p>All you need is:</p>
+<ol>
+<li>Install easy-vac</li>
+<li>Design your type schema</li>
+<li>VAC (validate and clean) the data</li>
+</ol>
+<h3><i class="fas fa-cube"></i> Install</h3>
+<p>easy-vac can be installed via:</p>
+<ul>
+<li>via <a href="https://www.npmjs.com/package/easy-vac">NPM</a>: <code>npm install --save easy-vac</code></li>
+<li>via CDN:
+<ul>
+<li>easy-vac only runs on modern browsers with ES6 support.</li>
+<li>UMD version is provided by default, with global name <code>EasyVAC</code></li>
+<li>JSDelivr: <a href="https://cdn.jsdelivr.net/npm/easy-vac">https://cdn.jsdelivr.net/npm/easy-vac</a></li>
+<li>UnPKG: <a href="https://unpkg.com/easy-vac">https://unpkg.com/easy-vac</a></li>
+</ul>
+</li>
+</ul>
+<h3><i class="fas fa-drafting-compass"></i> Design type Schema</h3>
+<p>Schema can’t contains functions or <code>undefined</code>! Valid types in easy-vac schema:</p>
+<ul>
+<li>string, number, boolean</li>
+<li>Array, plain object</li>
+<li>Date, ObjectId etc. <a href="xxx.html">(define before use »)</a></li>
+</ul>
+<p>Let’s start with a simple example:</p>
+<pre class="hljs"><code><span class="hljs-keyword">import</span> { VObject, VArray, VEnum, VTuple, VACError } <span class="hljs-keyword">from</span> <span class="hljs-string">"easy-vac"</span>
+
+<span class="hljs-keyword">const</span> OrderItem = VObject({
+  <span class="hljs-attr">product</span>: { <span class="hljs-attr">type</span>: <span class="hljs-string">"string"</span>, <span class="hljs-attr">required</span>: <span class="hljs-literal">true</span> },
+  <span class="hljs-attr">count</span>:   { <span class="hljs-attr">type</span>: <span class="hljs-string">"int"</span>,    <span class="hljs-attr">default</span>: <span class="hljs-number">1</span>, <span class="hljs-attr">minimum</span>: <span class="hljs-number">1</span> },
+})
+
+<span class="hljs-keyword">const</span> Order = VObject.required({
+  <span class="hljs-attr">guest</span>:  { <span class="hljs-attr">type</span>: <span class="hljs-built_in">String</span> },           <span class="hljs-comment">// &lt;- type can also be "string"</span>
+  items:  { <span class="hljs-attr">type</span>: VArray({ <span class="hljs-attr">items</span>: { <span class="hljs-attr">type</span>: OrderItem },
+                           <span class="hljs-attr">minItems</span>: <span class="hljs-number">1</span>,
+                           <span class="hljs-attr">maxItems</span>: <span class="hljs-number">3</span> })
+          }
+})
+</code></pre>
+<p>The javascript code defined 2 object schemas: <code>OrderItem</code> and <code>Order</code>.</p>
+<p>In TypeScript, the corresponding types can be written as:</p>
+<pre class="hljs"><code><span class="hljs-keyword">interface</span> OrderItem {
+  product: <span class="hljs-built_in">string</span>
+  count: <span class="hljs-built_in">number</span>     <span class="hljs-comment">// integer, value &gt;= 1, default is 1</span>
+}
+
+<span class="hljs-keyword">interface</span> Order {
+  guest: <span class="hljs-built_in">string</span>,
+  items: OrderItem[],  <span class="hljs-comment">// array of OrderItem. 1 &lt;= array length &lt;= 3</span>
+}
+</code></pre>
+<p>You don’t need to write that! <strong>Types are automatically inferred</strong> from your code by TypeScript and easy-vac.</p>
+<p><i class="fas fa-lightbulb"></i> Put the JavaScript code into <a href="#playground">playground</a>, hover your cursor on the Schema names and see the magic.</p>
+<p><i class="fas fa-lightbulb"></i> You may also define other types with <a href="">VTuple</a>, <a href="">VEnum</a> and <a href="">makeVType</a>. See <a href="xxx.html">Define new Types</a>.</p>
+<h3><i class="fas fa-cogs"></i> VAC (validate and clean) the data</h3>
+<p>Now we’ve defined the schemas. Time to <em>VAC</em> some data!</p>
+<pre class="hljs"><code><span class="hljs-keyword">var</span> incoming = {
+  <span class="hljs-attr">_id</span>: <span class="hljs-string">"xxxxx"</span>,
+  <span class="hljs-attr">guest</span>: <span class="hljs-number">12345</span>,
+  <span class="hljs-attr">items</span>: [
+    { <span class="hljs-attr">product</span>: <span class="hljs-string">"Ice Cream"</span> },
+    { <span class="hljs-attr">product</span>: <span class="hljs-string">"Toast"</span>, <span class="hljs-attr">count</span>: <span class="hljs-number">3</span> },
+  ]
+}
+
+<span class="hljs-keyword">var</span> order = Order.vac(incoming)
+<span class="hljs-built_in">console</span>.log(order)
+</code></pre>
+<p>There is a <code>_id</code> which is unexpected. <code>guest</code> is a number rather than string, and <code>items[0]</code> lacks <code>count</code>.</p>
+<p>However, in your schemas, <code>_id</code> is not defined, <code>guest</code> of <em>Order</em> is defined as a string, <code>count</code> of <em>OrderItem</em> has a default value.</p>
+<p>easy-vac will validate and clean the data. Print <code>data</code> and you will find that those minor issues are fixed:</p>
+<pre class="hljs"><code>{
+  <span class="hljs-string">"guest"</span>: <span class="hljs-string">"12345"</span>,
+  <span class="hljs-string">"items"</span>: [
+    { <span class="hljs-string">"product"</span>: <span class="hljs-string">"Ice Cream"</span>, <span class="hljs-string">"count"</span>: <span class="hljs-number">1</span> },
+    { <span class="hljs-string">"product"</span>: <span class="hljs-string">"Toast"</span>, <span class="hljs-string">"count"</span>: <span class="hljs-number">3</span> }
+  ]
+}
+</code></pre>
+<h4><i class="fas fa-hard-hat"></i> Handle Errors</h4>
+<p>If there are major problems, <code>Order.vac(...)</code> will throw a [VACError][].</p>
+<pre class="hljs"><code><span class="hljs-keyword">var</span> incoming = {
+  <span class="hljs-attr">items</span>: [
+    { <span class="hljs-attr">product</span>: <span class="hljs-string">"Ice Cream"</span> },
+    { <span class="hljs-attr">product</span>: <span class="hljs-string">"Toast"</span>, <span class="hljs-attr">count</span>: <span class="hljs-number">3</span> },
+    { <span class="hljs-attr">product</span>: <span class="hljs-string">"Beer"</span>, <span class="hljs-attr">count</span>: <span class="hljs-number">-1</span> },
+    { <span class="hljs-attr">product</span>: <span class="hljs-string">"Pizza"</span>, <span class="hljs-attr">count</span>: <span class="hljs-number">0</span> },
+  ]
+}
+
+<span class="hljs-keyword">try</span> {
+  <span class="hljs-keyword">var</span> data = Order.vac(incoming)  <span class="hljs-comment">// &lt;- this throws a VACError</span>
+  <span class="hljs-built_in">console</span>.log(data)               <span class="hljs-comment">// &lt;- will not reach this line</span>
+} <span class="hljs-keyword">catch</span> (err) {
+  <span class="hljs-keyword">if</span> (err <span class="hljs-keyword">instanceof</span> VACError) {
+    <span class="hljs-built_in">console</span>.error(<span class="hljs-string">"easy-vac found Error!"</span>)
+    err.errors.forEach(<span class="hljs-function"><span class="hljs-params">it</span> =&gt;</span> {
+      <span class="hljs-built_in">console</span>.error(<span class="hljs-string">`- <span class="hljs-subst">${it.label}</span>: <span class="hljs-subst">${it.error.message}</span>`</span>)
+    })
+  }
+}
+</code></pre>
+<p>Console will print this in red:</p>
+<pre class="hljs"><code>easy-vac found Error!
+- root.guest: required property is missing
+- root.items[2].count: value too small
+- root.items[3].count: value too small
+- root.items: array length is too long
+</code></pre>
+
+    </section>
+
+    <section style="text-align:center" id="examples">
+      <p style="font-size:64px">
+        <i class="fas fa-snowboarding"></i>
+      </p>
+      <p>
+        Don't miss the playground and
+        2
+        examples</p>
+      <p><a class="example-item" onclick="loadExample('00 Hello World')">Hello World</a> <a class="example-item" onclick="loadExample('01 Quiz')">Quiz</a></p>
+    </section>
+
+    <section id="playground">
+      <div class="even-row" style="flex-grow:1">
+        <div class="even-col editor-outer">
+          <div class="editor-header">
+            <span class="editor-header-idx">Test Program</span>
+            Write your program
+            <button onclick="resetProgram()">Reset</button>
+          </div>
+          <div id="editor1" class="editor-inner"></div>
+        </div>
+        <div class="even-col even-row" style="flex-direction: column">
+          <div class="even-col editor-outer">
+            <div class="editor-header">
+              <span class="editor-header-idx">Incoming Data</span>
+              input or select example:
+              <select id="incomingSelect"></select>
+            </div>
+            <div class="editor-inner" id="editor2"></div>
+          </div>
+          <div class="even-col editor-outer">
+            <div class="editor-header">
+              <span class="editor-header-idx">Playground Console</span>
+              See what happens</div>
+            <div class="editor-inner" id="vconsole"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <script>
+      var require = {
+        paths: {
+          vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.17.0/min/vs",
+          demo: "https://unpkg.com/easy-vac/dist"
+        }
+      };
+    </script>
+    <script src="https://unpkg.com/easy-vac/dist/index.umd.js"></script>
+    <link data-name="vs/editor/editor.main" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.16.0/min/vs/editor/editor.main.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/preact/8.4.2/preact.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/typescript/3.4.5/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tslib/1.9.3/tslib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.17.0/min/vs/loader.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.17.0/min/vs/editor/editor.main.nls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.17.0/min/vs/editor/editor.main.js"></script>
+    <script>
+      'use strict'
+      define("typescript", () => ts);
+      define("preact", () => preact);
+      define("easy-vac", () => EasyVAC);
+      require(["demo/index"], function () {});
+    </script>
+  </body>
+</html>

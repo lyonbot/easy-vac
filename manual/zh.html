@@ -1,0 +1,125 @@
+<p>easy-vac 是一个用于验证和清理数据的 JavaScript 库</p>
+<ul>
+<li><strong>比 JSON Schema 好用</strong>: 脱离 JSON 的限制，使用 JavaScript 的方式定义数据类型</li>
+<li><strong>自动类型推导</strong>: 和 TypeScript 一起使用效果更佳</li>
+<li><strong>类型容忍性</strong>: 能把原始数据转换为你需要的类型</li>
+<li><strong>高度扩展性</strong>: 类型定义可以随处重用</li>
+</ul>
+<p><a href="https://travis-ci.org/lyonbot/easy-vac"><img src="https://travis-ci.org/lyonbot/easy-vac.svg?branch=master" alt="Build Status"></a>
+<a href="https://www.npmjs.com/package/easy-vac"><img src="https://img.shields.io/npm/v/easy-vac.svg" alt="npm"></a>
+<img src="https://img.shields.io/bundlephobia/minzip/easy-vac.svg" alt="npm bundle size">
+<img src="https://img.shields.io/npm/types/easy-vac.svg" alt="npm type definitions">
+<img src="https://img.shields.io/npm/l/easy-vac.svg" alt="NPM License"></p>
+<h2><i class="fas fa-mug-hot"></i> 现在开始</h2>
+<p>你需要做的是：</p>
+<ol>
+<li>安装 easy-vac</li>
+<li>设计数据结构</li>
+<li>VAC (验证和清理，Validate and Clean) 数据</li>
+</ol>
+<h3><i class="fas fa-cube"></i> 安装</h3>
+<p>你可以通过下列方法安装 easy-vac:</p>
+<ul>
+<li>使用 <a href="https://www.npmjs.com/package/easy-vac">NPM</a>: <code>npm install --save easy-vac</code></li>
+<li>使用 CDN:
+<ul>
+<li>easy-vac 只能在支持 ES6 的现代浏览器上运行。</li>
+<li>默认提供 UMD 版本，在全局下通过 <code>EasyVAC</code> 变量提供各项功能</li>
+<li>JSDelivr: <a href="https://cdn.jsdelivr.net/npm/easy-vac">https://cdn.jsdelivr.net/npm/easy-vac</a></li>
+<li>UnPKG: <a href="https://unpkg.com/easy-vac">https://unpkg.com/easy-vac</a></li>
+</ul>
+</li>
+</ul>
+<h3><i class="fas fa-drafting-compass"></i> 设计数据结构</h3>
+<p>首先，数据里不能含有函数或者 <code>undefined</code>！在 easy-vac 的数据结构中可用类型如下:</p>
+<ul>
+<li>string, number, boolean</li>
+<li>数组, 普通的对象</li>
+<li>Date, ObjectId 等. <a href="xxx.html">(使用前需要定义 »)</a></li>
+</ul>
+<p>从一个简单的例子开始吧:</p>
+<pre class="hljs"><code><span class="hljs-keyword">import</span> { VObject, VArray, VEnum, VTuple, VACError } <span class="hljs-keyword">from</span> <span class="hljs-string">"easy-vac"</span>
+
+<span class="hljs-keyword">const</span> OrderItem = VObject({
+  <span class="hljs-attr">product</span>: { <span class="hljs-attr">type</span>: <span class="hljs-string">"string"</span>, <span class="hljs-attr">required</span>: <span class="hljs-literal">true</span> },
+  <span class="hljs-attr">count</span>:   { <span class="hljs-attr">type</span>: <span class="hljs-string">"int"</span>,    <span class="hljs-attr">default</span>: <span class="hljs-number">1</span>, <span class="hljs-attr">minimum</span>: <span class="hljs-number">1</span> },
+})
+
+<span class="hljs-keyword">const</span> Order = VObject.required({
+  <span class="hljs-attr">guest</span>:  { <span class="hljs-attr">type</span>: <span class="hljs-built_in">String</span> },           <span class="hljs-comment">// &lt;- type 可以是 "string"</span>
+  items:  { <span class="hljs-attr">type</span>: VArray({ <span class="hljs-attr">items</span>: { <span class="hljs-attr">type</span>: OrderItem },
+                           <span class="hljs-attr">minItems</span>: <span class="hljs-number">1</span>,
+                           <span class="hljs-attr">maxItems</span>: <span class="hljs-number">3</span> })
+          }
+})
+</code></pre>
+<p>这段 JavaScript 代码定义了 2 个数据结构: <code>OrderItem</code> 和 <code>Order</code>。</p>
+<p>在 TypeScript 中，相应的类型定义可写成：</p>
+<pre class="hljs"><code><span class="hljs-keyword">interface</span> OrderItem {
+  product: <span class="hljs-built_in">string</span>
+  count: <span class="hljs-built_in">number</span>     <span class="hljs-comment">// 整数, value &gt;= 1, default is 1</span>
+}
+
+<span class="hljs-keyword">interface</span> Order {
+  guest: <span class="hljs-built_in">string</span>,
+  items: OrderItem[],  <span class="hljs-comment">// OrderItem 数组. 1 &lt;= array length &lt;= 3</span>
+}
+</code></pre>
+<p>但是你并不需要写这些类型定义！<strong>类型定义是自动推导出来的</strong>，TypeScript 和 easy-vac 会从你写的 JavaScript 代码完成推导。</p>
+<p><i class="fas fa-lightbulb"></i> 把 JavaScript 代码丢到<a href="#playground">playground</a>，鼠标放在那数据结构的名字上，你会看到有意思的东西。</p>
+<p><i class="fas fa-lightbulb"></i> 你也可以用 <a href="">VTuple</a>, <a href="">VEnum</a> 和 <a href="">makeVType</a> 定义其他类型。参看 <a href="xxx.html">Define new Types</a>.</p>
+<h3><i class="fas fa-cogs"></i> 验证和清理 (VAC，Validate and Clean) 数据</h3>
+<p>定义了数据结构后，就可以 <em>VAC</em> 数据了。</p>
+<pre class="hljs"><code><span class="hljs-keyword">var</span> incoming = {
+  <span class="hljs-attr">_id</span>: <span class="hljs-string">"xxxxx"</span>,
+  <span class="hljs-attr">guest</span>: <span class="hljs-number">12345</span>,
+  <span class="hljs-attr">items</span>: [
+    { <span class="hljs-attr">product</span>: <span class="hljs-string">"Ice Cream"</span> },
+    { <span class="hljs-attr">product</span>: <span class="hljs-string">"Toast"</span>, <span class="hljs-attr">count</span>: <span class="hljs-number">3</span> },
+  ]
+}
+
+<span class="hljs-keyword">var</span> order = Order.vac(incoming)
+<span class="hljs-built_in">console</span>.log(order)
+</code></pre>
+<p>这里多出了个没定义过的 <code>_id</code>，而且 <code>guest</code> 是个数字（我们定义的是字符串）， <code>items[0]</code> 缺少 <code>count</code>。</p>
+<p>然而，在数据结构定义中，<code>_id</code> 不存在， <em>Order</em> 的 <code>guest</code> 是字符串, <em>OrderItem</em> 的 <code>count</code> 设置了默认值。</p>
+<p>easy-vac 会按照定义的数据结构来验证和清理数据. 输出 <code>data</code>，你会发现那些小问题都被解决了：</p>
+<pre class="hljs"><code>{
+  <span class="hljs-string">"guest"</span>: <span class="hljs-string">"12345"</span>,
+  <span class="hljs-string">"items"</span>: [
+    { <span class="hljs-string">"product"</span>: <span class="hljs-string">"Ice Cream"</span>, <span class="hljs-string">"count"</span>: <span class="hljs-number">1</span> },
+    { <span class="hljs-string">"product"</span>: <span class="hljs-string">"Toast"</span>, <span class="hljs-string">"count"</span>: <span class="hljs-number">3</span> }
+  ]
+}
+</code></pre>
+<h4><i class="fas fa-hard-hat"></i> 处理错误</h4>
+<p>如果遇到了一些大问题， <code>Order.vac(...)</code> 会抛出 [VACError][] 异常。</p>
+<pre class="hljs"><code><span class="hljs-keyword">var</span> incoming = {
+  <span class="hljs-attr">items</span>: [
+    { <span class="hljs-attr">product</span>: <span class="hljs-string">"Ice Cream"</span> },
+    { <span class="hljs-attr">product</span>: <span class="hljs-string">"Toast"</span>, <span class="hljs-attr">count</span>: <span class="hljs-number">3</span> },
+    { <span class="hljs-attr">product</span>: <span class="hljs-string">"Beer"</span>, <span class="hljs-attr">count</span>: <span class="hljs-number">-1</span> },
+    { <span class="hljs-attr">product</span>: <span class="hljs-string">"Pizza"</span>, <span class="hljs-attr">count</span>: <span class="hljs-number">0</span> },
+  ]
+}
+
+<span class="hljs-keyword">try</span> {
+  <span class="hljs-keyword">var</span> data = Order.vac(incoming)  <span class="hljs-comment">// &lt;- 抛出 VACError</span>
+  <span class="hljs-built_in">console</span>.log(data)               <span class="hljs-comment">// &lt;- 程序到不了这儿</span>
+} <span class="hljs-keyword">catch</span> (err) {
+  <span class="hljs-keyword">if</span> (err <span class="hljs-keyword">instanceof</span> VACError) {
+    <span class="hljs-built_in">console</span>.error(<span class="hljs-string">"easy-vac 发现错误!"</span>)
+    err.errors.forEach(<span class="hljs-function"><span class="hljs-params">it</span> =&gt;</span> {
+      <span class="hljs-built_in">console</span>.error(<span class="hljs-string">`- <span class="hljs-subst">${it.label}</span>: <span class="hljs-subst">${it.error.message}</span>`</span>)
+    })
+  }
+}
+</code></pre>
+<p>控制台会用红色字输出:</p>
+<pre class="hljs"><code>easy-vac 发现错误!
+- root.guest: required property is missing
+- root.items[2].count: value too small
+- root.items[3].count: value too small
+- root.items: array length is too long
+</code></pre>

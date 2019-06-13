@@ -1,0 +1,211 @@
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  background: #fafafa;
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.example-item, header nav a {
+  display: inline-block;
+  text-decoration: none;
+  border: 1.5px solid #666;
+  border-left-width: 2px;
+  border-right-width: 2px;
+  color: #333;
+  margin: 5px 5px;
+  vertical-align: middle;
+  cursor: pointer;
+  transition: 0.2s ease;
+  transform: translateY(0);
+}
+.example-item:hover, header nav a:hover, .example-item:active, header nav a:active {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 5px #ccc;
+}
+
+pre,
+code,
+#code-placeholder,
+#vconsole {
+  font-family: Consolas, "Courier New", monospace;
+  font-weight: normal;
+  font-size: 14px;
+  line-height: 19px;
+  letter-spacing: 0px;
+}
+
+section,
+.wrapper {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+#manual {
+  padding: 10px;
+}
+#manual p code,
+#manual li code,
+#manual pre {
+  border: 1px solid #999;
+  border-radius: 3px;
+  padding: 2px 4px;
+  background: #fff;
+  padding: 10px;
+}
+#manual blockquote {
+  background: #fff;
+  padding: 10px 20px;
+  margin: 0.5em 0;
+  border-left: 4px solid #eee;
+}
+#manual p code,
+#manual li code {
+  padding: 2px 4px;
+  display: inline-block;
+  vertical-align: baseline;
+  color: #900;
+}
+#manual a[href] {
+  color: #008eda;
+  padding: 2px 3px;
+}
+#manual a[href]:hover, #manual a[href]:focus {
+  background: #008eda;
+  color: #fff;
+}
+#manual h2,
+#manual h3 {
+  margin-top: 3em;
+}
+
+header {
+  background: #fff;
+  padding: 10px 0;
+  padding: 10vh 0;
+  text-align: center;
+  box-shadow: 0 0 5px #999;
+  line-height: 2;
+}
+header h1 {
+  font-weight: normal;
+  font-size: 32px;
+}
+header nav a {
+  border-radius: 8px;
+  padding: 4px 20px;
+}
+
+section#playground {
+  display: flex;
+  flex-flow: column;
+  min-height: 100vh;
+  max-width: 1200px;
+}
+
+.manual-lang-list {
+  padding-top: 10px;
+  font-size: 14px;
+}
+.manual-lang-list .manual-lang {
+  display: inline-block;
+  cursor: pointer;
+  padding: 0px 4px;
+  color: #666;
+}
+.manual-lang-list .manual-lang:hover, .manual-lang-list .manual-lang:focus {
+  color: #333;
+}
+
+.example-item {
+  border-radius: 4px;
+  padding: 2px 10px;
+  background-color: #fff;
+}
+
+.even-row {
+  flex-grow: 1;
+  display: flex;
+  justify-content: stretch;
+}
+
+@media (max-width: 800px) {
+  .even-row {
+    flex-flow: column;
+  }
+}
+.even-col {
+  flex-basis: 0;
+  flex-grow: 1;
+}
+
+.editor-outer,
+#vconsole {
+  background: #fff;
+}
+
+.editor-outer {
+  box-shadow: 0 1px 5px #999;
+  margin: 5px;
+  position: relative;
+}
+
+.editor-header {
+  height: 24px;
+  line-height: 24px;
+  background: #69a;
+  color: #fff;
+  font-size: 14px;
+}
+
+.editor-header-idx {
+  background: #379;
+  padding: 0 1ex;
+  text-align: center;
+  margin-right: 1ex;
+  float: left;
+}
+
+.editor-inner {
+  position: absolute;
+  left: 0;
+  top: 24px;
+  width: 100%;
+  bottom: 0;
+}
+
+#vconsole {
+  color: #333;
+  overflow: auto;
+}
+#vconsole .json-viewer-node {
+  min-width: 60%;
+}
+#vconsole .console-line {
+  padding: 10px;
+  margin-bottom: 2px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #ccc;
+}
+#vconsole .console-line.error {
+  background-color: rgba(255, 0, 0, 0.05);
+}
+#vconsole .console-line.warn {
+  background-color: rgba(255, 255, 0, 0.05);
+}
+#vconsole .console-line.info {
+  background-color: rgba(0, 128, 255, 0.08);
+}
+#vconsole .vacerror ul {
+  padding-left: 16px;
+}
+#vconsole .vacerror li {
+  margin: 0.5em 0;
+}
+#vconsole .vacerror .label {
+  color: #666;
+  background: #eee;
+  padding: 2px 6px;
+  border-radius: 2px;
+  margin-right: 1ex;
+}

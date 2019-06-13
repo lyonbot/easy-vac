@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1,ie=edge">
+    <title>easy-vac: validate and clean data made easy</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.15.8/styles/a11y-light.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" crossorigin="anonymous"/>
+    <link rel="stylesheet" href="main.css">
+  </head>
+  <body>
+
+    <header>
+      <div class="wrapper">
+        <h1>easy-vac</h1>
+        <p>Validate and Clean data made easy!</p>
+        <nav>
+          <a href="https://github.com/lyonbot/easy-vac/">
+            <i class="fab fa-github"></i>
+            GitHub</a>
+          <a href="#playground">
+            <i class="fas fa-play"></i>
+            Try it Now</a>
+          <a href="#examples">
+            <i class="fas fa-cheese"></i>
+            Examples</a>
+          <a href="https://github.com/lyonbot/easy-vac/wiki">
+            <i class="fas fa-book"></i>
+            Documentation</a>
+        </nav>
+      </div>
+    </header>
+
+    <div class="wrapper manual-lang-list">
+      <i class="fas fa-language"></i>
+      {{MANUAL_LANGS}}
+    </div>
+
+    <section id="manual">
+      [[MAIN-CONTENT]]
+    </section>
+
+    <section style="text-align:center" id="examples">
+      <p style="font-size:64px">
+        <i class="fas fa-snowboarding"></i>
+      </p>
+      <p>
+        Don't miss the playground and
+        {{EXAMPLE_COUNT}}
+        examples</p>
+      <p>{{EXAMPLE_LIST}}</p>
+    </section>
+
+    <section id="playground">
+      <div class="even-row" style="flex-grow:1">
+        <div class="even-col editor-outer">
+          <div class="editor-header">
+            <span class="editor-header-idx">Test Program</span>
+            Write your program
+            <button onclick="resetProgram()">Reset</button>
+          </div>
+          <div id="editor1" class="editor-inner"></div>
+        </div>
+        <div class="even-col even-row" style="flex-direction: column">
+          <div class="even-col editor-outer">
+            <div class="editor-header">
+              <span class="editor-header-idx">Incoming Data</span>
+              input or select example:
+              <select id="incomingSelect"></select>
+            </div>
+            <div class="editor-inner" id="editor2"></div>
+          </div>
+          <div class="even-col editor-outer">
+            <div class="editor-header">
+              <span class="editor-header-idx">Playground Console</span>
+              See what happens</div>
+            <div class="editor-inner" id="vconsole"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <script>
+      var require = {
+        paths: {
+          vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.17.0/min/vs",
+          demo: "https://unpkg.com/easy-vac/dist"
+        }
+      };
+    </script>
+    <script src="https://unpkg.com/easy-vac/dist/index.umd.js"></script>
+    <link data-name="vs/editor/editor.main" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.16.0/min/vs/editor/editor.main.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/preact/8.4.2/preact.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/typescript/3.4.5/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tslib/1.9.3/tslib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.17.0/min/vs/loader.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.17.0/min/vs/editor/editor.main.nls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.17.0/min/vs/editor/editor.main.js"></script>
+    <script>
+      'use strict'
+      define("typescript", () => ts);
+      define("preact", () => preact);
+      define("easy-vac", () => EasyVAC);
+      require(["demo/index"], function () {});
+    </script>
+  </body>
+</html>

@@ -1,0 +1,19 @@
+header {
+  background: #fff;
+  padding: 10px 0;
+  padding: 10vh 0;
+  text-align: center;
+  box-shadow: 0 0 5px #999;
+  line-height: 2;
+
+  h1 {
+    font-weight: normal;
+    font-size: 32px;
+  }
+
+  nav a {
+    @extend %bubble-button;
+    border-radius: 8px;
+    padding: 4px 20px;
+  }
+}

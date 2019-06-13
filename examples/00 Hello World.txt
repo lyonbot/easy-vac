@@ -1,0 +1,42 @@
+//>>>--- data: 12345's order
+export default {
+  _id: "xxxxx",
+  guest: 12345,
+  items: [
+    { product: "Ice Cream" },
+    { product: "Toast", count: 3 },
+  ]
+}
+
+//>>>--- data: too many items
+export default {
+  items: [
+    { product: "Ice Cream" },
+    { product: "Toast", count: 3 },
+    { product: "Beer", count: -1 },
+    { product: "Pizza", count: 0 },
+  ]
+}
+
+//>>>--- program
+import { VObject, VArray, VEnum, VTuple, VACError } from "easy-vac"
+import incoming from "test-data"
+
+const OrderItem = VObject({
+  product: { type: "string", required: true },
+  count: { type: "int", default: 1, minimum: 1 },
+})
+
+const Order = VObject.required({
+  guest: { type: String },          // type can also be "string"
+  items: {
+    type: VArray({
+      items: { type: OrderItem },
+      minItems: 1,
+      maxItems: 3
+    })
+  }
+})
+
+var order = Order.vac(incoming)
+playground.log(order)

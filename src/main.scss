@@ -1,0 +1,87 @@
+@import "./scss/base.scss";
+@import "./scss/header.scss";
+
+section#playground {
+  display: flex;
+  flex-flow: column;
+  min-height: 100vh;
+  max-width: 1200px;
+}
+
+.manual-lang-list {
+  padding-top: 10px;
+  font-size: 14px;
+
+  .manual-lang {
+    display: inline-block;
+    cursor: pointer;
+    padding: 0px 4px;
+    color: #666;
+
+    &:hover,
+    &:focus {
+      color: #333;
+    }
+  }
+}
+
+.example-item {
+  @extend %bubble-button;
+  border-radius: 4px;
+  padding: 2px 10px;
+  background-color: #fff;
+}
+
+.even-row {
+  flex-grow: 1;
+  display: flex;
+  justify-content: stretch;
+}
+
+@media (max-width: 800px) {
+  .even-row {
+    flex-flow: column;
+  }
+}
+
+.even-col {
+  flex-basis: 0;
+  flex-grow: 1;
+}
+
+.editor-outer,
+#vconsole {
+  background: #fff;
+}
+
+.editor-outer {
+  box-shadow: 0 1px 5px #999;
+  margin: 5px;
+  position: relative;
+}
+
+.editor-header {
+  height: 24px;
+  line-height: 24px;
+  background: #69a;
+  color: #fff;
+  font-size: 14px;
+}
+
+.editor-header-idx {
+  background: #379;
+  padding: 0 1ex;
+  text-align: center;
+  margin-right: 1ex;
+  float: left;
+}
+
+.editor-inner {
+  position: absolute;
+  left: 0;
+  top: 24px;
+  width: 100%;
+  bottom: 0;
+}
+
+@import "./scss/vconsole.scss";

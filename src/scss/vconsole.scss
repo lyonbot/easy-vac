@@ -1,0 +1,43 @@
+#vconsole {
+  color: #333;
+  overflow: auto;
+
+  .json-viewer-node {
+    min-width: 60%;
+  }
+
+  .console-line {
+    padding: 10px;
+    margin-bottom: 2px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #ccc;
+  }
+
+  .console-line.error {
+    background-color: rgba(255, 0, 0, 0.05);
+  }
+
+  .console-line.warn {
+    background-color: rgba(255, 255, 0, 0.05);
+  }
+
+  .console-line.info {
+    background-color: rgba(0, 128, 255, 0.08);
+  }
+
+  .vacerror ul {
+    padding-left: 16px;
+  }
+
+  .vacerror li {
+    margin: 0.5em 0;
+  }
+
+  .vacerror .label {
+    color: #666;
+    background: #eee;
+    padding: 2px 6px;
+    border-radius: 2px;
+    margin-right: 1ex;
+  }
+}
