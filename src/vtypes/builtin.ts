@@ -9,8 +9,20 @@ declare module "../core" {
 
     "int": number
     "integer": number
+    "email": string
   }
 }
+
+const reEmail = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
+
+const EmailVType = makeVType(
+  x => {
+    let y = String(x)
+    if (!reEmail.test(y)) throw new Error("Not an email address")
+    return y
+  },
+  { result: String }
+)
 
 const IntegerVType = makeVType(
   x => {
@@ -46,6 +58,7 @@ define("boolean", BooleanVType)
 define("number", NumberVType)
 define("int", IntegerVType)
 define("integer", IntegerVType)
+define("email", EmailVType)
 
 // extra VTypes for widely used JS built-in objects
 

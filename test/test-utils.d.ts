@@ -1,0 +1,1 @@
+export function assertVACError(fn: () => void, bad_labels: string[]): void

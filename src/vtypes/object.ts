@@ -55,6 +55,35 @@ class VObjectType<T extends Record<string, any>> extends VType<T>{
   }
 
   /**
+   * Make a new VObject whose fields are optional (their `required` === `false`)
+   *
+   * In the new VObject, all fields are optional (which could be **dangerous**),
+   * unless they are specified in `exclude`, or has a `default` value.
+   *
+   */
+  partial(opts?: {
+    /** these fields' `required` will not be changed */
+    exclude?: (keyof T)[],
+
+    /** update some fields' `default` value */
+    default?: { [k in keyof T]?: T[k] }
+  }): VObjectType<T> {
+    const excludes = new Set(opts && opts.exclude)
+    const defaults = opts && opts.default
+
+    const schema = {} as ObjectSchema<keyof T>
+    for (const k in this.schema) {
+      const it = { ...this.schema[k] }
+      if (!excludes.has(k)) it.required = false
+      if (defaults && (k in defaults)) it.default = defaults[k]
+      schema[k] = it
+    }
+
+    const ans = new VObjectType(schema, this.options)
+    return ans
+  }
+
+  /**
    * Pick some fields from this VObject, and create a new VType from them.
    *
    * @example

@@ -26,7 +26,7 @@ var ob = VObject({
 
 const out: VACResultType<typeof ob> = ob.vac({
   q: 'c',
-  pos: ["12.35", 3.14159],
+  pos: ["fu12.35", 3.14159],
   s: {
     a: 4.6,
     b: '2019-12-30',

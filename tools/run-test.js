@@ -9,20 +9,14 @@
  * If no file specified, all tests will be ran.
  */
 
+require('./test-register')
 const Module = require("module")
+const vm = require("vm")
 const path = require("path")
 const fs = require("fs")
 const ts = require("typescript")
-const old_resolveFilename = Module._resolveFilename
 
 const testDir = path.resolve(__dirname, "..", "test")
-
-Module._resolveFilename = function (request, _parent) {
-  if (request === "easy-vac") {
-    return path.resolve(__dirname, "../dist/index.js")
-  }
-  return old_resolveFilename.apply(this, arguments)
-}
 
 let filenames = process.argv.slice(2)
 
@@ -50,13 +44,25 @@ for (let filename of filenames) {
 
   if (/\.ts$/.test(filepath)) {
     // transpile .ts file
-    content = ts.transpile(content, {
-      module: ts.ModuleKind.CommonJS,
-      target: ts.ScriptTarget.ES2016
+    var tsOutput = ts.transpileModule(content, {
+      compilerOptions: {
+        module: ts.ModuleKind.CommonJS,
+        target: ts.ScriptTarget.ES2016,
+        moduleResolution: ts.ModuleResolutionKind.NodeJs,
+      },
     })
+    content = tsOutput.outputText
   }
 
   console.log(`==== [${filename}] ====`)
-  eval(content)
+  const compiled = vm.runInThisContext(Module.wrap(content), {
+    filename: filepath,
+    lineOffset: 0,
+    displayErrors: true
+  })
+
+  const _module = { exports: {} }, _exports = _module.exports
+  const _require = Module.createRequireFromPath(filepath)
+  compiled.call(_exports, _exports, _require, _module, filepath, path.dirname(filepath))
   console.log(`==== Finished ====`)
 }
