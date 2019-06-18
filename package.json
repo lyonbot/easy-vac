@@ -2,7 +2,7 @@
   "name": "easy-vac",
   "description": "easily validate and clean data, with JSON Schema-like syntax",
   "authors": "lyonbot",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "license": "MIT",
   "homepage": "https://lyonbot.github.io/easy-vac/",
   "repository": {
@@ -28,7 +28,7 @@
     "build": "tsc -d -m es2015 --outDir tmp/lib && rollup -c && npm run dts && npm run minify",
     "dts": "node tools/bundle-dts",
     "minify": "terser dist/index.umd.js -cm -o dist/index.umd.min.js --mangle-props regex=/^_/",
-    "test": "node test/run-test --all",
+    "test": "node tools/run-test",
     "prepare": "npm run build"
   },
   "sideEffects": true,

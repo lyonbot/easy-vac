@@ -7,6 +7,9 @@
 import { VType, ST2T, VProp, VPropMetas } from "../core";
 import getVACContext from "../vcontext";
 
+type ObjectPick<T, K> = {} & { [k in Extract<keyof T, K>]: T[k] }
+type ObjectExclude<T, K> = {} & { [k in Exclude<keyof T, K>]: T[k] }
+
 type ValidPropJsType = string | boolean | number | object
 export interface ObjectProp extends VProp {
   required?: boolean
@@ -41,7 +44,7 @@ type ObjectSchema2JsType<ST extends ObjectSchema> =
  *     const goodData = VisitorInfo.vac({ name: "John", age: "27.314159" })
  *     // goodData is { name: "John", age: 27 }
  */
-class VObjectType<T> extends VType<T>{
+class VObjectType<T extends Record<string, any>> extends VType<T>{
 
   constructor(
     public schema: ObjectSchema<keyof T>,
@@ -49,6 +52,61 @@ class VObjectType<T> extends VType<T>{
   ) {
     super()
     this.setResultPrototype(Object.prototype)
+  }
+
+  /**
+   * Pick some fields from this VObject, and create a new VType from them.
+   *
+   * @example
+   *
+   *      const QA = VObject.required({
+   *        id: { type: "int" },
+   *        tags: { type: VArray({ items: { type: String } }) },
+   *        question: { type: String },
+   *        created_at: { type: Date },
+   *        answer: { type: String },
+   *        answerd_at: { type: Date },
+   *      })
+   *
+   *      const Question = QA.pick("id", "tags", "question", "created_at")
+   *
+   *      // now you can
+   *      Question.vac({ ... })
+   *
+   * @see {@link exclude}
+   */
+  pick<Keys extends keyof T>(...keys: Keys[]): VObjectType<ObjectPick<T, Keys>> {
+    const schema = {} as ObjectSchema<Keys>
+    keys.forEach(key => { schema[key] = this.schema[key] })
+    return new VObjectType<ObjectPick<T, Keys>>(schema, this.options as any) // FIXME
+  }
+
+
+  /**
+   * Create a new VType from this VObject's schema, without specified fields.
+   *
+   * @example
+   *
+   *      const QA = VObject.required({
+   *        id: { type: "int" },
+   *        tags: { type: VArray({ items: { type: String } }) },
+   *        question: { type: String },
+   *        created_at: { type: Date },
+   *        answer: { type: String },
+   *        answerd_at: { type: Date },
+   *      })
+   *
+   *      const Question = QA.exclude("answer", "answerd_at")
+   *
+   *      // now you can
+   *      Question.vac({ ... })
+   *
+   * @see {@link pick}
+   */
+  exclude<Keys extends keyof T>(...keys: Keys[]): VObjectType<ObjectExclude<T, Keys>> {
+    const schema = { ...this.schema } as ObjectSchema<any>
+    keys.forEach(key => { delete schema[key] })
+    return new VObjectType<ObjectExclude<T, Keys>>(schema, this.options as any) // FIXME
   }
 
   vac(incoming: any, meta?: VPropMetas): T {
@@ -131,7 +189,7 @@ namespace makeVObject {
    *
    * In the object, **All properties are required** unless `required` or `default` is explicitly defined by you
    */
-  export function required<ST extends ObjectSchema>(schema: ST, opts?: VObjectOptions<ObjectSchema2JsType<ST>>): VType<ObjectSchema2JsType<ST>> {
+  export function required<ST extends ObjectSchema>(schema: ST, opts?: VObjectOptions<ObjectSchema2JsType<ST>>): VObjectType<ObjectSchema2JsType<ST>> {
     const newSchema = {} as ST
     for (const key in schema) {
       const op = schema[key]
