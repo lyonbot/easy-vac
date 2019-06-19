@@ -7,8 +7,47 @@
 import { VType, ST2T, VProp, VPropMetas } from "../core";
 import getVACContext from "../vcontext";
 
+type SimpleObject = Record<string, any>
 type ObjectPick<T, K> = {} & { [k in Extract<keyof T, K>]: T[k] }
 type ObjectExclude<T, K> = {} & { [k in Exclude<keyof T, K>]: T[k] }
+
+/**
+ * Mix Two Object types.
+ * if field keys have conflict, use latter's field type
+ */
+type MTO<T1 extends SimpleObject, T2 extends SimpleObject> = {} & {
+  [k in keyof T1 | keyof T2]: (k extends keyof T2 ? T2[k] : k extends keyof T1 ? T1[k] : never)
+}
+
+/* script that generate the VObjectMixMany mess
+
+var out = []
+for (let j=10; j>=1; j--) {
+  var arr = [], wrap = "T0"
+  for (let i=1; i<=j; i++) {
+    arr.push(`T${i}`)
+    wrap = `MTO<${wrap}, T${i}>`
+  }
+  out.push(': PS extends [' +
+          arr.map(x=>`VObjectType<infer ${x}>`).join(', ') +
+          '] ? ' + wrap)
+}
+console.log(out.join("\n"))
+
+*/
+
+type VObjectMixMany<T0 extends SimpleObject, PS extends VObjectType<any>[]>
+  = PS extends [VObjectType<infer T1>, VObjectType<infer T2>, VObjectType<infer T3>, VObjectType<infer T4>, VObjectType<infer T5>, VObjectType<infer T6>, VObjectType<infer T7>, VObjectType<infer T8>, VObjectType<infer T9>, VObjectType<infer T10>] ? MTO<MTO<MTO<MTO<MTO<MTO<MTO<MTO<MTO<MTO<T0, T1>, T2>, T3>, T4>, T5>, T6>, T7>, T8>, T9>, T10>
+  : PS extends [VObjectType<infer T1>, VObjectType<infer T2>, VObjectType<infer T3>, VObjectType<infer T4>, VObjectType<infer T5>, VObjectType<infer T6>, VObjectType<infer T7>, VObjectType<infer T8>, VObjectType<infer T9>] ? MTO<MTO<MTO<MTO<MTO<MTO<MTO<MTO<MTO<T0, T1>, T2>, T3>, T4>, T5>, T6>, T7>, T8>, T9>
+  : PS extends [VObjectType<infer T1>, VObjectType<infer T2>, VObjectType<infer T3>, VObjectType<infer T4>, VObjectType<infer T5>, VObjectType<infer T6>, VObjectType<infer T7>, VObjectType<infer T8>] ? MTO<MTO<MTO<MTO<MTO<MTO<MTO<MTO<T0, T1>, T2>, T3>, T4>, T5>, T6>, T7>, T8>
+  : PS extends [VObjectType<infer T1>, VObjectType<infer T2>, VObjectType<infer T3>, VObjectType<infer T4>, VObjectType<infer T5>, VObjectType<infer T6>, VObjectType<infer T7>] ? MTO<MTO<MTO<MTO<MTO<MTO<MTO<T0, T1>, T2>, T3>, T4>, T5>, T6>, T7>
+  : PS extends [VObjectType<infer T1>, VObjectType<infer T2>, VObjectType<infer T3>, VObjectType<infer T4>, VObjectType<infer T5>, VObjectType<infer T6>] ? MTO<MTO<MTO<MTO<MTO<MTO<T0, T1>, T2>, T3>, T4>, T5>, T6>
+  : PS extends [VObjectType<infer T1>, VObjectType<infer T2>, VObjectType<infer T3>, VObjectType<infer T4>, VObjectType<infer T5>] ? MTO<MTO<MTO<MTO<MTO<T0, T1>, T2>, T3>, T4>, T5>
+  : PS extends [VObjectType<infer T1>, VObjectType<infer T2>, VObjectType<infer T3>, VObjectType<infer T4>] ? MTO<MTO<MTO<MTO<T0, T1>, T2>, T3>, T4>
+  : PS extends [VObjectType<infer T1>, VObjectType<infer T2>, VObjectType<infer T3>] ? MTO<MTO<MTO<T0, T1>, T2>, T3>
+  : PS extends [VObjectType<infer T1>, VObjectType<infer T2>] ? MTO<MTO<T0, T1>, T2>
+  : PS extends [VObjectType<infer T1>] ? MTO<T0, T1>
+  : unknown
 
 type ValidPropJsType = string | boolean | number | object
 export interface ObjectProp extends VProp {
@@ -136,6 +175,55 @@ class VObjectType<T extends Record<string, any>> extends VType<T>{
     const schema = { ...this.schema } as ObjectSchema<any>
     keys.forEach(key => { delete schema[key] })
     return new VObjectType<ObjectExclude<T, Keys>>(schema, this.options as any) // FIXME
+  }
+
+
+  /**
+   * create a new VObject instance, whose fields are from *this* VObject & *other* VObjects.
+   *
+   * - if field keys have conflict, the latter VObjects' field types will be used.
+   * - if `this.options` is defined, it will be used in the new VObject.
+   *   - this behavior may change in the future.
+   *
+   * @example
+   *
+   *     // First, define some VObject types
+   *
+   *     const PostcardBase = VObject.required({
+   *        id: { type: Number },  // this will be overwritten by `WithId`
+   *        from: { type: String },
+   *        message: { type: String },
+   *     })
+   *     const WithResponse = VObject.required({
+   *        responder: { type: String },
+   *        response: { type: String },
+   *     })
+   *     const WithCreateTime = VObject.required({
+   *        created_at: { type: Date },
+   *     })
+   *     const WithId = VObject.required({
+   *        id: { type: String },
+   *     })
+   *
+   *     // Then compose a VObject from them
+   *
+   *     const SuperPostcard = PostcardBase.extend(WithResponse, WithCreateTime, WithId)
+   *
+   *     // now we get the mixed VObject type `SuperPostcard`
+   *
+   *     SuperPostcard.vac({
+   *       id: "_not_number_anymore_",
+   *       created_at: "2019-06-20",
+   *       responder: "Bob",
+   *       response: "Now I see you",
+   *       from: "Alice",
+   *       message: "Knock, knock"
+   *     })
+   *
+   */
+  extend<PS extends VObjectType<any>[]>(...others: PS): VObjectType<VObjectMixMany<T, PS>> {
+    const schema = Object.assign({ ...this.schema }, ...others.map(it => it.schema))
+    return new VObjectType<any>(schema, this.options as any) // FIXME: not good to use this.options
   }
 
   vac(incoming: any, meta?: VPropMetas): T {
