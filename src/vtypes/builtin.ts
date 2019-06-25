@@ -3,6 +3,7 @@ import { makeVType } from "./makeVType";
 
 declare module "../core" {
   interface VTypeDict {
+    "any": any
     "string": string
     "number": number
     "boolean": boolean
@@ -53,6 +54,7 @@ const BooleanVType = makeVType(
   { result: Boolean }
 )
 
+define("any", makeVType(x => x, { typeName: "any", result: undefined }))
 define("string", makeVType(x => String(x), { result: String }))
 define("boolean", BooleanVType)
 define("number", NumberVType)

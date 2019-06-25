@@ -45,9 +45,12 @@ export function makeVType<T>(
 
   result.typeName = info.typeName
 
-  let prototype = info.result.prototype
-  if (!prototype || prototype.constructor !== info.result) prototype = Object.getPrototypeOf(info.result)
-  result.setResultPrototype(prototype)
+  let R = info.result
+  if (R) {
+    let prototype = R.prototype
+    if (!prototype || prototype.constructor !== R) prototype = Object.getPrototypeOf(R)
+    result.setResultPrototype(prototype)
+  }
 
   return result
 }
