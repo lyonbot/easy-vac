@@ -43,9 +43,9 @@ export class VACContext {
 
     try {
       result = type.vac(incoming, vprop)
-      this._postValidate(result, vprop);
+      this.postValidate_(result, vprop);
     } catch (error) {
-      this._pushError(error)
+      this.pushError_(error)
     }
 
     currentCtx = null // current context's mission is finished
@@ -66,14 +66,14 @@ export class VACContext {
     try {
       const vtype = vprop.type && getVType<T>(vprop.type)
       const result = fn(vtype, vprop)
-      this._postValidate(result, vprop);
+      this.postValidate_(result, vprop);
     } catch (error) {
-      this._pushError(error)
+      this.pushError_(error)
     }
     this.stack.pop()
   }
 
-  private _pushError(error: Error) {
+  private pushError_(error: Error) {
     const label = this._dumpLabelExpr()
     this.errors.push({
       error,
@@ -83,7 +83,7 @@ export class VACContext {
     })
   }
 
-  private _postValidate<T>(result: T, vprop: VProp) {
+  private postValidate_<T>(result: T, vprop: VProp) {
     if (result !== void 0) {
       for (let i = 0; i < postValidateFns.length; i++) {
         const fn = postValidateFns[i];

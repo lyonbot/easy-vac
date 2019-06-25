@@ -10,7 +10,7 @@ declare module "../core" {
     maxLength?: number,
     pattern?: RegExp,
     // enum ... use VEnum type instead :)
-    // format ... is not implemented yet
+    // format ... is not implemented yet. Use `verify` instead
 
     // https://json-schema.org/understanding-json-schema/reference/numeric.html
     multipleOf?: number

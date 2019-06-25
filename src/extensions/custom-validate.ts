@@ -5,7 +5,7 @@ import { addPostValidateFn } from "../vcontext";
 declare module "../core" {
   interface VPropMetas {
     /**
-     * a function to verify this field's value after converting data type.
+     * when data is validated & cleaned, you may do extra validation.
      * if field's value is bad, this function shall throw an `Error`.
      *
      * @param data the data in correct type and form
