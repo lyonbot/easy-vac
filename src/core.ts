@@ -163,11 +163,10 @@ export function isVType<T>(x: any): x is VType<T> { return x instanceof VType }
 /**
  * ST(SchemaType) can be a typename string(see {@link VTypeDict}), a {@link VType}, or a class constructor
  */
-export type SchemaType = keyof VTypeDict | Object
-// export type SchemaType = keyof VTypeDict | VType<any> | ConstructorOf<any>  // this ruins VEnum indexSignature feature somehow
+export type SchemaType = keyof VTypeDict | VType<any> | ConstructorOf<any>
 
 /**
- * This helper turns ST({@link SchemaType}) into corresponding JavaScript type
+ * Infer the corresponding JavaScript type from a {@link SchemaType} type `ST`
  */
 export type ST2T<ST> =
   ST extends VType<infer T> ? T :
@@ -176,4 +175,4 @@ export type ST2T<ST> =
   ST extends StringConstructor ? string :
   ST extends keyof VTypeDict ? VTypeDict[ST] :
   ST extends ConstructorOf<infer T> ? T :
-  never
+  unknown

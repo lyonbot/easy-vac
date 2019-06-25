@@ -68,7 +68,8 @@ class VEnumType<EnumValue extends StringOrNumber> extends VType<EnumValue>{
  *       role: { type: UserRole },
  *     })
  */
-function makeVEnum<EnumType extends keyof Record<StringOrNumber, any>>(enumItems: EnumType[]): VEnumType<EnumType>
+function makeVEnum<BogusDict extends any>(enumItems: (keyof BogusDict)[])
+  : VEnumType<StringOrNumber & keyof BogusDict>
 
 /**
  * VEnum is a VType for enum constants (string or number).

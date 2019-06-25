@@ -294,7 +294,7 @@ class VObjectType<T extends Record<string, any>> extends VType<T>{
  *     const goodData = VisitorInfo.vac({ name: "John", age: "27.314159" })
  *     // goodData is { name: "John", age: 27 }
  */
-function makeVObject<ST extends ObjectSchema>(schema: ST, opts?: VObjectOptions<ObjectSchema2JsType<ST>>): VObjectType<ObjectSchema2JsType<ST>> {
+function makeVObject<ST extends ObjectSchema>(schema: ST & ObjectSchema<keyof ST>, opts?: VObjectOptions<ObjectSchema2JsType<ST>>): VObjectType<ObjectSchema2JsType<ST>> {
   return new VObjectType<ObjectSchema2JsType<ST>>(schema, opts)
 }
 
@@ -306,7 +306,7 @@ namespace makeVObject {
    *
    * In the object, **All properties are required** unless `required` or `default` is explicitly defined by you
    */
-  export function required<ST extends ObjectSchema>(schema: ST, opts?: VObjectOptions<ObjectSchema2JsType<ST>>): VObjectType<ObjectSchema2JsType<ST>> {
+  export function required<ST extends ObjectSchema>(schema: ST & ObjectSchema<keyof ST>, opts?: VObjectOptions<ObjectSchema2JsType<ST>>): VObjectType<ObjectSchema2JsType<ST>> {
     const newSchema = {} as ST
     for (const key in schema) {
       const op = schema[key]
