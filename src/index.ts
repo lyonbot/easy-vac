@@ -1,6 +1,6 @@
 import { ST2T } from "./core"
 export { VPropMetas, VTypeDict } from "./core"
-export { VType, makeVType, isVType } from "./core"
+export { VType, isVType } from "./core"
 
 /**
  * extract corresponding JavaScript type info from a VType
@@ -29,6 +29,7 @@ export { default as VEnum } from "./vtypes/enum";
 export { default as VTuple } from "./vtypes/tuple";
 
 export { define, getVType } from "./vtypes/index";
+export * from "./vtypes/makeVType";
 
 /** now install builtin types and extensions */
 import "./vtypes/builtin";

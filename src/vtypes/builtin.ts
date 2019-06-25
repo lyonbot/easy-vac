@@ -1,5 +1,5 @@
 import { define } from "./index";
-import { makeVType } from "../core";
+import { makeVType } from "./makeVType";
 
 declare module "../core" {
   interface VTypeDict {

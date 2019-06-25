@@ -6,6 +6,7 @@
  * Usage: npm run test [xxxxx] [xxxxx] ...
  *
  * xxxxx are filename is relative path to `test` directory.
+ * xxxxx can also be directory names (without slash).
  * If no file specified, all tests will be ran.
  */
 
@@ -29,6 +30,26 @@ if (filenames.length == 0) {
       })
     } catch (e) { }
   })
+}
+
+let _i = 0
+while (_i < filenames.length) {
+  const item = filenames[_i]
+  const fullpath = path.join(testDir, item)
+
+  try {
+    const itemStat = fs.statSync(fullpath)
+    if (itemStat.isDirectory()) {
+      const insertedList = fs.readdirSync(fullpath).map(x => {
+        return path.join(item, x)
+      })
+      filenames.splice(_i, 1, ...insertedList)
+      _i += insertedList.length
+      continue
+    }
+  } catch (e) { }
+
+  _i++
 }
 
 if (filenames.length == 0) {

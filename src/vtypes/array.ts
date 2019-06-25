@@ -21,6 +21,14 @@ export interface VArrayOptions<ST extends SchemaType> {
    * using JavaScript `indexOf` to compare
    */
   uniqueItems?: boolean | 'validate'
+
+  /**
+   * if the input value `X` is not an array:
+   *
+   * - `false`: throw an Error. (default)
+   * - `true` : turn it into an array `[X]` and continue VaC-ing. (this could be dangerous)
+   */
+  ambiguousSingle?: boolean
 }
 
 class VArrayType<T> extends VType<T[]>{
@@ -41,21 +49,29 @@ class VArrayType<T> extends VType<T[]>{
       return context.operateRoot<T[]>(this, meta, incoming)
     }
 
-    // const elementVType = getVType<T>(opt.type)
-    if (!Array.isArray(incoming)) throw new Error("not an array")
+    let incomingArray = incoming as any[]
+    if (!Array.isArray(incoming)) {
+      if (opt.ambiguousSingle) incomingArray = typeof incoming !== 'undefined' ? [incoming] : []
+      else throw new Error("not an array")
+    }
 
-    let resultArray = new Array<T>(incoming.length)
-    incoming.forEach((item, idx) => {
+    let resultArray = new Array<T>(incomingArray.length)
+    incomingArray.forEach((item, idx) => {
       context.operate<T>(idx, opt.items, (elementVtype, meta) => {
         return resultArray[idx] = elementVtype.vac(item, meta)
       })
       // return elementVType.vac(item)
     })
 
+    if (context.errors.length) {
+      // items has error. no need to continue checking
+      return resultArray
+    }
+
     if (opt.uniqueItems) {
       let deduped = resultArray.filter((x, i) => resultArray.indexOf(x) === i)
       if (deduped.length < resultArray.length) {
-        if (opt.uniqueItems === 'validate') throw new Error("array length is too long")
+        if (opt.uniqueItems === 'validate') throw new Error("has duplicated items")
         else resultArray = deduped
       }
     }

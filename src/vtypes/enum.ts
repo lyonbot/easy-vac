@@ -3,9 +3,30 @@
  * creates an enum VType
  */
 
-import { VType } from "../core";
+import { VType, VPropMetas } from "../core";
+import getVACContext from "../vcontext";
 
 type StringOrNumber = string | number
+
+interface VEnumOptions {
+  /**
+   * `true`: use case insensitive string comparasion.
+   * This will affect performance.
+   *
+   * The original value you defined while creating this `VEnum`, will be used as the output.
+   */
+  ignoreCase?: boolean
+
+  /**
+   * `true`: trim string spaces before comparing strings.
+   * This will affect performance.
+   *
+   * The original value you defined while creating this `VEnum`, will be used as the output.
+   */
+  trim?: boolean
+}
+
+type VEnumAliasPair<EnumValue extends StringOrNumber> = [EnumValue, StringOrNumber];
 
 /**
  * VEnum is a VType for enum constants (string or number).
@@ -20,39 +41,60 @@ type StringOrNumber = string | number
  *     })
  */
 class VEnumType<EnumValue extends StringOrNumber> extends VType<EnumValue>{
-  public enumAliases: [EnumValue, StringOrNumber][]
-
   constructor(
     public enumItems: EnumValue[],
-    enumAliases?: [EnumValue, StringOrNumber][]
+    public aliases: VEnumAliasPair<EnumValue>[] = [],
+    public options: VEnumOptions = {}
   ) {
     super()
-    this.enumAliases = enumAliases || []
     this.setResultPrototype(Object.getPrototypeOf(enumItems[0]))
   }
 
-  vac(incoming: any): EnumValue {
+  vac(incoming: any, meta?: VPropMetas): EnumValue {
+    const context = getVACContext()
+
+    // handle root
+    if (context.stack.length == 0) return context.operateRoot(this, meta, incoming)
+
+
     const enumItems = this.enumItems
+    const { ignoreCase, trim } = this.options
+
+    function preproc(x: any) {
+      if (typeof x === 'string') {
+        if (ignoreCase) x = x.toLowerCase()
+        if (trim) x = x.trim()
+      }
+      return x
+    }
+
+    incoming = preproc(incoming)
 
     for (let i = 0; i < enumItems.length; i++) {
       let v = enumItems[i]
-      if (v == incoming) return v
+      if (preproc(v) == incoming) return v
     }
 
-    const enumAliases = this.enumAliases
+    const enumAliases = this.aliases
 
     for (let i = 0; i < enumAliases.length; i++) {
       let kv = enumAliases[i]
-      if (kv[1] == incoming) return kv[0]
+      if (preproc(kv[1]) == incoming) return kv[0]
     }
 
     // not found
     throw new Error("value is not defined in enum")
   }
 
-  addAlias(key: EnumValue, alias: StringOrNumber): this {
-    this.enumAliases.push([key, alias])
-    return this
+  /**
+   * Make a copy of this VEnum, and use some new options
+   */
+  withOptions(opt: VEnumOptions): VEnumType<EnumValue> {
+    return new VEnumType(
+      this.enumItems.slice(),
+      this.aliases.map(<T extends VEnumAliasPair<any>>(x: T) => x.slice() as T),
+      { ...this.options, ...opt }
+    )
   }
 }
 
@@ -68,7 +110,7 @@ class VEnumType<EnumValue extends StringOrNumber> extends VType<EnumValue>{
  *       role: { type: UserRole },
  *     })
  */
-function makeVEnum<BogusDict extends any>(enumItems: (keyof BogusDict)[])
+function makeVEnum<BogusDict extends any>(enumItems: (keyof BogusDict)[], options?: VEnumOptions)
   : VEnumType<StringOrNumber & keyof BogusDict>
 
 /**
@@ -83,7 +125,8 @@ function makeVEnum<BogusDict extends any>(enumItems: (keyof BogusDict)[])
  *       role: { type: UserRole },
  *     })
  */
-function makeVEnum<EnumType extends StringOrNumber>(enumItems: EnumType[]): VEnumType<EnumType>
+function makeVEnum<EnumType extends StringOrNumber>(enumItems: EnumType[], options?: VEnumOptions)
+  : VEnumType<EnumType>
 
 /**
  * VEnum is a VType for enum constants (string or number).
@@ -114,9 +157,9 @@ function makeVEnum<EnumType extends StringOrNumber>(enumItems: EnumType[]): VEnu
  *     test.op2 === "lt"   // "Less Than" becomes "lt"
  */
 function makeVEnum<EnumDict extends Record<StringOrNumber, StringOrNumber | Array<StringOrNumber>>>
-  (enumDict: EnumDict): VEnumType<Extract<keyof EnumDict, StringOrNumber>>
+  (enumDict: EnumDict, options?: VEnumOptions): VEnumType<Extract<keyof EnumDict, StringOrNumber>>
 
-function makeVEnum(arrOrDict: object): VEnumType<any> {
+function makeVEnum(arrOrDict: object, options?: VEnumOptions): VEnumType<any> {
   let enumItems: any[]
   let enumAliases: [any, any][]
 
@@ -133,7 +176,7 @@ function makeVEnum(arrOrDict: object): VEnumType<any> {
     }
   }
 
-  return new VEnumType<any>(enumItems, enumAliases)
+  return new VEnumType<any>(enumItems, enumAliases, options)
 }
 
 namespace makeVEnum {
