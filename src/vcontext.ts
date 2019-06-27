@@ -58,7 +58,7 @@ export class VACContext {
   }
 
   operate<T>(label: string | number, vprop: VProp, fn: (vtype: VType<T>, vprop: VPropMetas) => T) {
-    if (this.stack.length == 0) throw new Error("context already has root")
+    if (this.stack.length == 0) throw new Error("context has no root")
 
     vprop = { label, ...vprop }
 

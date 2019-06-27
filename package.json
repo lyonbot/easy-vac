@@ -2,7 +2,7 @@
   "name": "easy-vac",
   "description": "easily validate and clean data, with JSON Schema-like syntax",
   "authors": "lyonbot",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "license": "MIT",
   "homepage": "https://lyonbot.github.io/easy-vac/",
   "repository": {
