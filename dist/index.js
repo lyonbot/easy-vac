@@ -262,6 +262,7 @@ declare const playground: typeof import("playground")
         compilerOptions: {
             module: ts.ModuleKind.AMD,
             target: ts.ScriptTarget.ES2016,
+            esModuleInterop: true,
         }
     };
     const emulatedIncomingModule = { "default": {} };
@@ -302,9 +303,10 @@ declare const playground: typeof import("playground")
     !function () {
         return __awaiter(this, void 0, void 0, function* () {
             const typescriptDefaults = monaco.languages.typescript.typescriptDefaults;
+            typescriptDefaults.setOptions({ esModuleInterop: true });
             typescriptDefaults.addExtraLib(yield loadText('https://unpkg.com/easy-vac/dist/index.d.ts'), "file:///easy-vac/index.d.ts");
             typescriptDefaults.addExtraLib(VConsoleDts, "file:///playground.d.ts");
-            typescriptDefaults.addExtraLib(`declare module "incoming" { const d: any; export default d; }`, "file:///incoming.d.ts");
+            typescriptDefaults.addExtraLib(`declare module "incoming" { const d: Record<string, any>; export = d; }`, "file:///incoming.d.ts");
             init(programModel$1, incomingModel$1);
             useExample(yield loadText("examples/00 Hello World.txt"));
             const editorOptions = { minimap: { enabled: false }, automaticLayout: true };
@@ -313,11 +315,13 @@ declare const playground: typeof import("playground")
             programModel$1.onDidChangeContent(recompile);
             incomingModel$1.onDidChangeContent(recompile);
             recompile();
+            const loadingMask = document.querySelector('#playground .loading-cloak');
+            loadingMask.parentElement.removeChild(loadingMask);
             setTimeout(() => { VConsole.autoScroll = true; }, 1000);
         });
     }();
-    window['loadExample'] = function (name) {
-        loadText(`examples/${name}.txt`).then(useExample).catch(() => { alert('Failed to load example!'); });
+    window['loadExample'] = function (path) {
+        loadText(`examples/${path}`).then(useExample).catch(() => { alert('Failed to load example!'); });
         return false;
     };
     window['resetProgram'] = function () {

@@ -1,4 +1,8 @@
 //>>>--- data: 12345's order
+//                       ↑↑↑
+// Choose an example data
+// ... or just edit:
+
 export default {
   _id: "xxxxx",
   guest: 12345,

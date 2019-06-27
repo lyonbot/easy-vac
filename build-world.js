@@ -1,3 +1,5 @@
+//@ts-check
+
 const fs = require("fs");
 const sass = require("sass");
 const child_process = require("child_process");
@@ -35,9 +37,12 @@ const generate_html = debounced(function () {
 
   var examples = fs
     .readdirSync("examples")
-    .map(x => x.slice(0, -4))
-    .sort();
-  html = html.replace("[[EXAMPLES]]", examples.map(x => `<option>${x}</option>`));
+    .sort()
+    .map(x => [x, x.replace(/^\d+\s*|\.\w+$/g, '')])
+  html = html.replace(
+    "[[EXAMPLES]]",
+    examples.map(([path, name]) => `<option value="${path}">${name}</option>`).join("\n")
+  );
 
   var manualLangs = fs
     .readdirSync("src/manual")
@@ -53,8 +58,8 @@ const generate_html = debounced(function () {
   html = html
     .replace("{{MANUAL_LANGS}}", manualLangs.map(([code, name]) => `<a class="manual-lang" onclick="loadManualLang('${code}')" data-code="${code}">${name}</a>`).join(''))
     .replace("[[MAIN-CONTENT]]", mainContent)
-    .replace("{{EXAMPLE_COUNT}}", examples.length)
-    .replace("{{EXAMPLE_LIST}}", examples.map(x => `<a class="example-item" onclick="loadExample('${x}')">${x.slice(3)}</a>`).join(" "));
+    .replace("{{EXAMPLE_COUNT}}", String(examples.length))
+    .replace("{{EXAMPLE_LIST}}", examples.map(([path, name]) => `<a class="example-item" onclick="loadExample('${path}')">${name}</a>`).join(" "));
 
   // var sampleCode = fs.readFileSync("examples/00 Hello-World.txt", "utf-8");
   // html = html.replace("[[SAMPLE-CODE]]", sampleCode);
@@ -73,7 +78,7 @@ if (watch_mode) {
   fs.watch("src/manual", generate_html);
 }
 
-const platform_suffix = (process.platform = "win32" ? ".cmd" : "");
+const platform_suffix = (process.platform == "win32" ? ".cmd" : "");
 const rollup_process = child_process.spawn("npx" + platform_suffix, ["rollup", "-c", ...(watch_mode ? ["-w"] : [])], { stdio: "inherit" });
 process.addListener("beforeExit", () => typeof rollup_process["kill"] === "function" && rollup_process.kill());
 

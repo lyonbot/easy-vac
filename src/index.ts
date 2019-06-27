@@ -16,6 +16,7 @@ const transpileOptions: TranspileOptions = {
   compilerOptions: {
     module: ts.ModuleKind.AMD,
     target: ts.ScriptTarget.ES2016,
+    esModuleInterop: true,
   }
 }
 
@@ -66,9 +67,10 @@ const recompile = debounce(function () {
 !async function () {
   const typescriptDefaults = monaco.languages.typescript.typescriptDefaults
 
+  typescriptDefaults.setOptions({ esModuleInterop: true })
   typescriptDefaults.addExtraLib(await loadText('https://unpkg.com/easy-vac/dist/index.d.ts'), "file:///easy-vac/index.d.ts")
   typescriptDefaults.addExtraLib(VConsoleDts, "file:///playground.d.ts")
-  typescriptDefaults.addExtraLib(`declare module "incoming" { const d: any; export default d; }`, "file:///incoming.d.ts")
+  typescriptDefaults.addExtraLib(`declare module "incoming" { const d: Record<string, any>; export = d; }`, "file:///incoming.d.ts")
 
   example.init(programModel, incomingModel)
   example.useExample(await loadText("examples/00 Hello World.txt"))
@@ -81,11 +83,15 @@ const recompile = debounce(function () {
   programModel.onDidChangeContent(recompile)
   incomingModel.onDidChangeContent(recompile)
   recompile()
+
+  const loadingMask = document.querySelector('#playground .loading-cloak')
+  loadingMask.parentElement.removeChild(loadingMask)
+
   setTimeout(() => { VConsole.autoScroll = true }, 1000)
 }()
 
-window['loadExample'] = function (name: string) {
-  loadText(`examples/${name}.txt`).then(example.useExample).catch(() => { alert('Failed to load example!') })
+window['loadExample'] = function (path: string) {
+  loadText(`examples/${path}`).then(example.useExample).catch(() => { alert('Failed to load example!') })
   return false
 }
 

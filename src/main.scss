@@ -1,11 +1,16 @@
 @import "./scss/base.scss";
 @import "./scss/header.scss";
 
+.monaco-aria-container {
+  bottom: 0;
+}
+
 section#playground {
   display: flex;
   flex-flow: column;
   min-height: 100vh;
   max-width: 1200px;
+  position: relative;
 }
 
 .manual-lang-list {
@@ -84,4 +89,5 @@ section#playground {
   bottom: 0;
 }
 
+@import "./scss/loading.scss";
 @import "./scss/vconsole.scss";
