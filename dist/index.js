@@ -256,6 +256,24 @@ declare const playground: typeof import("playground")
     /// <reference path="./globals.d.ts" />
     define("playground", () => VConsole);
     window['playground'] = VConsole;
+    const hijackedConsole = (function () {
+        if (typeof Proxy === 'undefined')
+            return console;
+        const hijackFunctions = {};
+        for (const k in VConsole) {
+            const fn = VConsole[k];
+            if (typeof fn === 'function') {
+                hijackFunctions[k] = function () {
+                    console[k].apply(k, arguments);
+                    fn.apply(VConsole, arguments);
+                };
+            }
+        }
+        return new Proxy(console, {
+            get(target, key) { return hijackFunctions[key] || target[key]; }
+        });
+    })();
+    window['hijackedConsole'] = hijackedConsole;
     const programModel$1 = monaco.editor.createModel("", "typescript", monaco.Uri.parse("file:///program.ts"));
     const incomingModel$1 = monaco.editor.createModel("export default {\n}", "typescript", monaco.Uri.parse("file:///incoming.ts"));
     const transpileOptions = {
@@ -271,10 +289,11 @@ declare const playground: typeof import("playground")
     let lastProgramSource, lastIncomingSource;
     const recompile = debounce(function () {
         const jsToRun = [];
+        const prePatch = "const console = hijackedConsole;\n";
         const incomingScript = incomingModel$1.getValue();
         if (incomingScript !== lastIncomingSource) {
             lastIncomingSource = incomingScript;
-            let js = removeLeadingJSComments(ts.transpileModule(incomingScript, transpileOptions).outputText)
+            let js = removeLeadingJSComments(ts.transpileModule(prePatch + incomingScript, transpileOptions).outputText)
                 .replace('define(', 'require(')
                 .replace('"exports"', '"incoming"');
             jsToRun.push(js);
@@ -282,7 +301,7 @@ declare const playground: typeof import("playground")
         const programScript = programModel$1.getValue();
         if (jsToRun.length || programScript !== lastProgramSource) {
             lastProgramSource = programScript;
-            let js = removeLeadingJSComments(ts.transpileModule(programScript, transpileOptions).outputText)
+            let js = removeLeadingJSComments(ts.transpileModule(prePatch + programScript, transpileOptions).outputText)
                 .replace('define(', 'require(');
             jsToRun.push(js);
         }
@@ -303,7 +322,7 @@ declare const playground: typeof import("playground")
     !function () {
         return __awaiter(this, void 0, void 0, function* () {
             const typescriptDefaults = monaco.languages.typescript.typescriptDefaults;
-            typescriptDefaults.setOptions({ esModuleInterop: true });
+            typescriptDefaults.setCompilerOptions({ esModuleInterop: true });
             typescriptDefaults.addExtraLib(yield loadText('https://unpkg.com/easy-vac/dist/index.d.ts'), "file:///easy-vac/index.d.ts");
             typescriptDefaults.addExtraLib(VConsoleDts, "file:///playground.d.ts");
             typescriptDefaults.addExtraLib(`declare module "incoming" { const d: Record<string, any>; export = d; }`, "file:///incoming.d.ts");

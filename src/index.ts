@@ -9,6 +9,26 @@ import { renderVACError } from "./render-vacerror";
 define("playground", () => VConsole)
 window['playground'] = VConsole
 
+const hijackedConsole = (function () {
+  if (typeof Proxy === 'undefined') return console
+
+  const hijackFunctions = {}
+  for (const k in VConsole) {
+    const fn = VConsole[k]
+    if (typeof fn === 'function') {
+      hijackFunctions[k] = function () {
+        console[k].apply(k, arguments)
+        fn.apply(VConsole, arguments)
+      }
+    }
+  }
+
+  return new Proxy(console, {
+    get(target, key) { return hijackFunctions[key] || target[key] }
+  })
+})()
+window['hijackedConsole'] = hijackedConsole
+
 const programModel = monaco.editor.createModel("", "typescript", monaco.Uri.parse("file:///program.ts"));
 const incomingModel = monaco.editor.createModel("export default {\n}", "typescript", monaco.Uri.parse("file:///incoming.ts"));
 
@@ -28,12 +48,13 @@ let lastProgramSource: string, lastIncomingSource: string
 
 const recompile = debounce(function () {
   const jsToRun = [] as string[]
+  const prePatch = "const console = hijackedConsole;\n"
 
   const incomingScript = incomingModel.getValue()
   if (incomingScript !== lastIncomingSource) {
     lastIncomingSource = incomingScript
     let js =
-      removeLeadingJSComments(ts.transpileModule(incomingScript, transpileOptions).outputText)
+      removeLeadingJSComments(ts.transpileModule(prePatch + incomingScript, transpileOptions).outputText)
         .replace('define(', 'require(')
         .replace('"exports"', '"incoming"')
 
@@ -44,7 +65,7 @@ const recompile = debounce(function () {
   if (jsToRun.length || programScript !== lastProgramSource) {
     lastProgramSource = programScript
     let js =
-      removeLeadingJSComments(ts.transpileModule(programScript, transpileOptions).outputText)
+      removeLeadingJSComments(ts.transpileModule(prePatch + programScript, transpileOptions).outputText)
         .replace('define(', 'require(')
 
     jsToRun.push(js)
@@ -67,7 +88,7 @@ const recompile = debounce(function () {
 !async function () {
   const typescriptDefaults = monaco.languages.typescript.typescriptDefaults
 
-  typescriptDefaults.setOptions({ esModuleInterop: true })
+  typescriptDefaults.setCompilerOptions({ esModuleInterop: true })
   typescriptDefaults.addExtraLib(await loadText('https://unpkg.com/easy-vac/dist/index.d.ts'), "file:///easy-vac/index.d.ts")
   typescriptDefaults.addExtraLib(VConsoleDts, "file:///playground.d.ts")
   typescriptDefaults.addExtraLib(`declare module "incoming" { const d: Record<string, any>; export = d; }`, "file:///incoming.d.ts")
